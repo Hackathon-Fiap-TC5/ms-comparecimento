@@ -17,6 +17,7 @@ paths:
       tags:
         - Pacientes
       summary: Consultar indice de comparecimento do paciente
+      operationId: consultarIndiceComparecimentoPaciente
       parameters:
         - name: cns
           in: path
@@ -35,7 +36,8 @@ paths:
     get:
       tags:
         - Relatorios
-      summary: Relatorio de absenteismo por periodo
+      summary: Consultar relatorio de absenteismo por periodo
+      operationId: consultarRelatorioAbsenteismo
       parameters:
         - name: dataInicio
           in: query
@@ -62,6 +64,7 @@ paths:
       tags:
         - Relatorios
       summary: Consultar ICC medio por periodo
+      operationId: consultarIccMedioPorPeriodo
       parameters:
         - name: dataInicio
           in: query
@@ -89,6 +92,9 @@ components:
     IndiceComparecimentoResponse:
       type: object
       properties:
+        cns:
+          type: string
+          example: 89800112345678
         icc:
           type: integer
           example: 72

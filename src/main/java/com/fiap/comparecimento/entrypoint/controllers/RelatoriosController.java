@@ -16,12 +16,12 @@ import java.time.LocalDate;
 public class RelatoriosController implements RelatoriosApi {
 
     @Override
-    public ResponseEntity<RelatorioAbsenteismoResponseDto> _relatoriosAbsenteismoGet(LocalDate dataInicio, LocalDate dataFim) {
+    public ResponseEntity<IccMedioResponseDto> _consultarIccMedioPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
         return null;
     }
 
     @Override
-    public ResponseEntity<IccMedioResponseDto> _relatoriosIccMedioGet(LocalDate dataInicio, LocalDate dataFim) {
+    public ResponseEntity<RelatorioAbsenteismoResponseDto> _consultarRelatorioAbsenteismo(LocalDate dataInicio, LocalDate dataFim) {
         return null;
     }
 }

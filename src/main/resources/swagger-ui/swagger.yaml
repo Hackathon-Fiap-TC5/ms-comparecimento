@@ -1,28 +1,22 @@
 openapi: 3.0.3
 info:
   title: API MS Comparecimento SUS
-  description: API responsavel por consumo de eventos de agendamento, calculo do ICC e geracao de relatorios
+  description: API responsavel por disponibilizar indicadores de comparecimento e absenteismo
   version: 1.0.0
+
+tags:
+  - name: Pacientes
+    description: Indicadores individuais de comparecimento
+  - name: Relatorios
+    description: Relatorios gerenciais e agregados
 
 paths:
 
-  /eventos/agendamento:
-    post:
-      summary: Receber evento de agendamento
-      description: Endpoint utilizado pelo ms-agendamento ou fila para envio de eventos
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EventoAgendamentoRequest'
-      responses:
-        '202':
-          description: Evento recebido e processado
-
   /pacientes/{cns}/indice-comparecimento:
     get:
-      summary: Consultar ICC do paciente
+      tags:
+        - Pacientes
+      summary: Consultar indice de comparecimento do paciente
       parameters:
         - name: cns
           in: path
@@ -31,7 +25,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Indice retornado
+          description: Indice de comparecimento retornado
           content:
             application/json:
               schema:
@@ -39,6 +33,8 @@ paths:
 
   /relatorios/absenteismo:
     get:
+      tags:
+        - Relatorios
       summary: Relatorio de absenteismo por periodo
       parameters:
         - name: dataInicio
@@ -55,7 +51,7 @@ paths:
             format: date
       responses:
         '200':
-          description: Relatorio retornado
+          description: Relatorio de absenteismo retornado
           content:
             application/json:
               schema:
@@ -63,6 +59,8 @@ paths:
 
   /relatorios/icc-medio:
     get:
+      tags:
+        - Relatorios
       summary: Consultar ICC medio por periodo
       parameters:
         - name: dataInicio
@@ -87,53 +85,6 @@ paths:
 
 components:
   schemas:
-
-    EventoAgendamentoRequest:
-      type: object
-      required:
-        - idEvento
-        - idAgendamento
-        - cns
-        - statusConsulta
-        - dataEvento
-      properties:
-        idEvento:
-          type: string
-          example: EVT-20260204-0001
-
-        idAgendamento:
-          type: string
-          example: AGD-2026-0001
-
-        cns:
-          type: string
-          example: 898001160000123
-
-        statusConsulta:
-          type: string
-          enum:
-            - AGENDADA
-            - CONFIRMADA
-            - COMPARECEU
-            - FALTOU
-            - CANCELADA
-
-        statusNotificacao:
-          type: string
-          nullable: true
-          enum:
-            - CONFIRMOU_48H_ANTECEDENCIA
-            - CONFIRMOU_24H_ANTECEDENCIA
-            - NAO_CONFIRMOU
-            - SEM_RETORNO
-
-        dataEvento:
-          type: string
-          format: date-time
-
-        origem:
-          type: string
-          example: MS_AGENDAMENTO
 
     IndiceComparecimentoResponse:
       type: object

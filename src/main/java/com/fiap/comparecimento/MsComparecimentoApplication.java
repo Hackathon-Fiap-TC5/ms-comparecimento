@@ -1,4 +1,4 @@
-package com.fiap.ms_comparecimento;
+package com.fiap.comparecimento;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

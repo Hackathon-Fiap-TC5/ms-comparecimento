@@ -1,0 +1,173 @@
+openapi: 3.0.3
+info:
+  title: API MS Comparecimento SUS
+  description: API responsavel por consumo de eventos de agendamento, calculo do ICC e geracao de relatorios
+  version: 1.0.0
+
+paths:
+
+  /eventos/agendamento:
+    post:
+      summary: Receber evento de agendamento
+      description: Endpoint utilizado pelo ms-agendamento ou fila para envio de eventos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventoAgendamentoRequest'
+      responses:
+        '202':
+          description: Evento recebido e processado
+
+  /pacientes/{cns}/indice-comparecimento:
+    get:
+      summary: Consultar ICC do paciente
+      parameters:
+        - name: cns
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Indice retornado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndiceComparecimentoResponse'
+
+  /relatorios/absenteismo:
+    get:
+      summary: Relatorio de absenteismo por periodo
+      parameters:
+        - name: dataInicio
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: dataFim
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Relatorio retornado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelatorioAbsenteismoResponse'
+
+  /relatorios/icc-medio:
+    get:
+      summary: Consultar ICC medio por periodo
+      parameters:
+        - name: dataInicio
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: dataFim
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: ICC medio retornado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IccMedioResponse'
+
+components:
+  schemas:
+
+    EventoAgendamentoRequest:
+      type: object
+      required:
+        - idEvento
+        - idAgendamento
+        - cns
+        - statusConsulta
+        - dataEvento
+      properties:
+        idEvento:
+          type: string
+          example: EVT-20260204-0001
+
+        idAgendamento:
+          type: string
+          example: AGD-2026-0001
+
+        cns:
+          type: string
+          example: 898001160000123
+
+        statusConsulta:
+          type: string
+          enum:
+            - AGENDADA
+            - CONFIRMADA
+            - COMPARECEU
+            - FALTOU
+            - CANCELADA
+
+        statusNotificacao:
+          type: string
+          nullable: true
+          enum:
+            - CONFIRMOU_48H_ANTECEDENCIA
+            - CONFIRMOU_24H_ANTECEDENCIA
+            - NAO_CONFIRMOU
+            - SEM_RETORNO
+
+        dataEvento:
+          type: string
+          format: date-time
+
+        origem:
+          type: string
+          example: MS_AGENDAMENTO
+
+    IndiceComparecimentoResponse:
+      type: object
+      properties:
+        icc:
+          type: integer
+          example: 72
+        classificacao:
+          type: string
+          example: MEDIO_RISCO
+        totalComparecimentos:
+          type: integer
+        totalFaltas:
+          type: integer
+        totalConfirmacoes:
+          type: integer
+        ultimaAtualizacao:
+          type: string
+          format: date-time
+
+    RelatorioAbsenteismoResponse:
+      type: object
+      properties:
+        totalConsultas:
+          type: integer
+        totalFaltas:
+          type: integer
+        taxaAbsenteismo:
+          type: number
+          example: 28.5
+
+    IccMedioResponse:
+      type: object
+      properties:
+        iccMedio:
+          type: number
+          example: 67.4

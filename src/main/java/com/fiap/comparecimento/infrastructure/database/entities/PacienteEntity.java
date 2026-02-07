@@ -34,6 +34,9 @@ public class PacienteEntity {
     @Column(name = "total_confirmacoes")
     private Integer totalConfirmacoes;
 
+    @Column(name = "total_agendamentos")
+    private Integer totalAgendamentos;
+
     @Column(name = "ultima_atualizacao")
     private OffsetDateTime ultimaAtualizacao;
 }

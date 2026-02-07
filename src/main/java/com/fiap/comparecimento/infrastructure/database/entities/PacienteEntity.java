@@ -17,8 +17,6 @@ public class PacienteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String cns;
 
     private Integer icc;
@@ -33,6 +31,9 @@ public class PacienteEntity {
 
     @Column(name = "total_confirmacoes")
     private Integer totalConfirmacoes;
+
+    @Column(name = "total_agendamentos")
+    private Integer totalAgendamentos;
 
     @Column(name = "ultima_atualizacao")
     private OffsetDateTime ultimaAtualizacao;

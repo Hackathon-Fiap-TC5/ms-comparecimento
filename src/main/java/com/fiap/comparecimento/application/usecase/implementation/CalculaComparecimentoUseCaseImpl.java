@@ -44,7 +44,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         int icc = calculaICC(p, info);
 
         p.setIcc(icc);
-        p.setClassificacao(classificaPaciente(icc).toString());
+        p.setClassificacao(classificarICC(icc).toString());
         p.setTotalComparecimentos(totalComparecimentos);
         p.setTotalFaltas(totalFaltas);
         p.setTotalConfirmacoes(totalConfirmacoes);
@@ -56,15 +56,17 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
     /*
     * Classifica o agendamento e sugere uma acao
     * */
-    private ClassificacaoPacienteEnum classificaPaciente(int icc) {
-        if (icc >= 85) return ClassificacaoPacienteEnum.MUITO_CONFIAVEL;
-        if (icc >= 75) return ClassificacaoPacienteEnum.CONFIAVEL;
-        if (icc >= 60) return ClassificacaoPacienteEnum.ATENCAO;
-        if (icc >= 45) return ClassificacaoPacienteEnum.RISCO;
-        if (icc >= 30) return ClassificacaoPacienteEnum.ALTO_RISCO;
-        if (icc >= 20) return ClassificacaoPacienteEnum.FALTA_PROVAVEL;
-        if (icc >= 15) return ClassificacaoPacienteEnum.MODO_REALOCACAO;
-        return ClassificacaoPacienteEnum.REALOQUE;
+    private ClassificacaoPacienteEnum classificarICC(int icc) {
+
+        if (icc >= 90) return ClassificacaoPacienteEnum.MUITO_CONFIAVEL;
+        if (icc >= 80) return ClassificacaoPacienteEnum.CONFIAVEL;
+        if (icc >= 70) return ClassificacaoPacienteEnum.COMPARECIMENTO_PROVAVEL;
+        if (icc >= 60) return ClassificacaoPacienteEnum.COMPARECIMENTO_INCERTO;
+        if (icc >= 50) return ClassificacaoPacienteEnum.BAIXA_PROBABILIDADE_DE_COMPARECIMENTO;
+        if (icc >= 40) return ClassificacaoPacienteEnum.PROVAVEL_NAO_COMPARECIMENTO;
+        if (icc >= 30) return ClassificacaoPacienteEnum.CRITICO;
+        if (icc >= 20) return ClassificacaoPacienteEnum.REALOCACAO_POSSIVEL;
+        return ClassificacaoPacienteEnum.REALOCACAO_IMEDIATA;
     }
 
     /*

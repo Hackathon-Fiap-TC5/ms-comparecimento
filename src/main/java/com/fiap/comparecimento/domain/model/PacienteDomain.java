@@ -9,7 +9,6 @@ import java.time.OffsetDateTime;
 @Setter
 public class PacienteDomain {
 
-    private Long id;
     private String cns;
     private Integer icc;
     private String classificacao;
@@ -22,8 +21,7 @@ public class PacienteDomain {
     public PacienteDomain() {
     }
 
-    public PacienteDomain(Long id, String cns, Integer icc, String classificacao, Integer totalComparecimentos, Integer totalFaltas, Integer totalConfirmacoes, Integer totalAgendamentos, OffsetDateTime ultimaAtualizacao) {
-        this.id = id;
+    public PacienteDomain(String cns, Integer icc, String classificacao, Integer totalComparecimentos, Integer totalFaltas, Integer totalConfirmacoes, Integer totalAgendamentos, OffsetDateTime ultimaAtualizacao) {
         this.cns = cns;
         this.icc = icc;
         this.classificacao = classificacao;

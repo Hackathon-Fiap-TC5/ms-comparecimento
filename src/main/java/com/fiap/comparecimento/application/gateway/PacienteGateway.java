@@ -6,5 +6,5 @@ public interface PacienteGateway {
 
     PacienteDomain consultar(String cns);
 
-    void save(PacienteDomain domain);
+    void atualizarInformacoesPaciente(PacienteDomain domain);
 }

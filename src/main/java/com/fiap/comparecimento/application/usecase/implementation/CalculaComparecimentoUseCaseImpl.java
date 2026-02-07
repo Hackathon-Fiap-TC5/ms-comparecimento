@@ -21,17 +21,17 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
     @Override
     public void calculaComparecimento(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
         PacienteDomain pacienteDomain = pacienteGateway.consultar(eventoAgendamentoMessageDomain.getCns());
-        run(pacienteDomain, eventoAgendamentoMessageDomain);
+        executarFluxoIcc(pacienteDomain, eventoAgendamentoMessageDomain);
     }
 
     /*
     * Atualiza as infos do paciente apos calculo e classificação de comparecimento
     * */
-    private void run(PacienteDomain p, EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
-        int totalComparecimentos = p.getTotalComparecimentos();
-        int totalFaltas = p.getTotalFaltas();
-        int totalConfirmacoes = p.getTotalConfirmacoes();
-        int totalAgendamentos = p.getTotalAgendamentos();
+    private void executarFluxoIcc(PacienteDomain pacienteDomain, EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
+        int totalComparecimentos = pacienteDomain.getTotalComparecimentos();
+        int totalFaltas = pacienteDomain.getTotalFaltas();
+        int totalConfirmacoes = pacienteDomain.getTotalConfirmacoes();
+        int totalAgendamentos = pacienteDomain.getTotalAgendamentos();
 
         StatusConsultaEnum status = eventoAgendamentoMessageDomain.getStatusConsulta();
         switch (status){
@@ -41,44 +41,53 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
             case CONFIRMADO: totalConfirmacoes += 1;
         }
 
-        int icc = calculaICC(p, eventoAgendamentoMessageDomain);
+        int icc = calculaICC(pacienteDomain, eventoAgendamentoMessageDomain);
 
-        p.setIcc(icc);
-        p.setClassificacao(classificarICC(icc).toString());
-        p.setTotalComparecimentos(totalComparecimentos);
-        p.setTotalFaltas(totalFaltas);
-        p.setTotalConfirmacoes(totalConfirmacoes);
-        p.setTotalAgendamentos(totalAgendamentos);
-        p.setUltimaAtualizacao(OffsetDateTime.now());
-        pacienteGateway.save(p);
+        pacienteDomain.setIcc(icc);
+        pacienteDomain.setClassificacao(classificarICC(icc).toString());
+        pacienteDomain.setTotalComparecimentos(totalComparecimentos);
+        pacienteDomain.setTotalFaltas(totalFaltas);
+        pacienteDomain.setTotalConfirmacoes(totalConfirmacoes);
+        pacienteDomain.setTotalAgendamentos(totalAgendamentos);
+        pacienteDomain.setUltimaAtualizacao(OffsetDateTime.now());
+        pacienteGateway.atualizarInformacoesPaciente(pacienteDomain);
     }
 
     /*
     * Classifica o agendamento e sugere uma acao
     * */
     private ClassificacaoPacienteEnum classificarICC(int icc) {
-
-        if (icc >= 90) return ClassificacaoPacienteEnum.MUITO_CONFIAVEL;
-        if (icc >= 80) return ClassificacaoPacienteEnum.CONFIAVEL;
-        if (icc >= 70) return ClassificacaoPacienteEnum.COMPARECIMENTO_PROVAVEL;
-        if (icc >= 60) return ClassificacaoPacienteEnum.COMPARECIMENTO_INCERTO;
-        if (icc >= 50) return ClassificacaoPacienteEnum.BAIXA_PROBABILIDADE_DE_COMPARECIMENTO;
-        if (icc >= 40) return ClassificacaoPacienteEnum.PROVAVEL_NAO_COMPARECIMENTO;
-        if (icc >= 30) return ClassificacaoPacienteEnum.CRITICO;
-        if (icc >= 20) return ClassificacaoPacienteEnum.REALOCACAO_POSSIVEL;
-        return ClassificacaoPacienteEnum.REALOCACAO_IMEDIATA;
+        if (icc >= 90) {
+            return ClassificacaoPacienteEnum.MUITO_CONFIAVEL;
+        } else if (icc >= 80) {
+            return ClassificacaoPacienteEnum.CONFIAVEL;
+        } else if (icc >= 70) {
+            return ClassificacaoPacienteEnum.COMPARECIMENTO_PROVAVEL;
+        } else if (icc >= 60) {
+            return ClassificacaoPacienteEnum.COMPARECIMENTO_INCERTO;
+        } else if (icc >= 50) {
+            return ClassificacaoPacienteEnum.BAIXA_PROBABILIDADE_DE_COMPARECIMENTO;
+        } else if (icc >= 40) {
+            return ClassificacaoPacienteEnum.PROVAVEL_NAO_COMPARECIMENTO;
+        } else if (icc >= 30) {
+            return ClassificacaoPacienteEnum.CRITICO;
+        } if (icc >= 20) {
+            return ClassificacaoPacienteEnum.REALOCACAO_POSSIVEL;
+        } else {
+            return ClassificacaoPacienteEnum.REALOCACAO_IMEDIATA;
+        }
     }
 
     /*
     * Calcula o ICC com base nos dados do paciente e sobre o evento de agendamento
     * */
-    private Integer calculaICC(PacienteDomain p, EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
+    private Integer calculaICC(PacienteDomain pacienteDomain, EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
 
         //Dados base para calculo
-        double totalAg = Math.max(1, p.getTotalAgendamentos());
-        double totalComp = p.getTotalComparecimentos();
-        double totalFalta = p.getTotalFaltas();
-        double totalConf = p.getTotalConfirmacoes();
+        double totalAg = Math.max(1, pacienteDomain.getTotalAgendamentos());
+        double totalComp = pacienteDomain.getTotalComparecimentos();
+        double totalFalta = pacienteDomain.getTotalFaltas();
+        double totalConf = pacienteDomain.getTotalConfirmacoes();
 
         //Taxa registradas anteriormente para analise de paciente
         double taxaComparecimento = (totalComp + 1.0) / (totalAg + 2.0);
@@ -122,9 +131,8 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
 
         // Peso status da consulta
         switch (status) {
-            case AGENDADO -> score += 0.5;
+            case AGENDADO, CANCELADO -> score += 0.5;
             case CONFIRMADO -> score += 1.5;
-            case CANCELADO -> score += 0.5;
             case REALIZADO -> score += 3.0;
             case FALTA -> score -= 4.0;
         }

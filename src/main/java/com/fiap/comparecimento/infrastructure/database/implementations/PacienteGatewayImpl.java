@@ -23,7 +23,7 @@ public class PacienteGatewayImpl implements PacienteGateway {
     }
 
     @Override
-    public void save(PacienteDomain domain) {
+    public void atualizarInformacoesPaciente(PacienteDomain domain) {
         PacienteEntity entity = PacienteEntityMapper.INSTANCE.toPacienteEntity(domain);
         pacienteRepository.save(entity);
     }

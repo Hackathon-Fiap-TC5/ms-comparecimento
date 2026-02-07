@@ -128,3 +128,17 @@ components:
         iccMedio:
           type: number
           example: 67.4
+
+    EventoAgendamentoMessage:
+      type: object
+      description: Evento de agendamento publicado via mensageria
+      properties:
+        cns:
+          type: string
+          example: 123456789012345
+        statusConsulta:
+          type: string
+          example: COMPARECEU
+        statusNotificacao:
+          type: string
+          example: CONFIRMADO_24H

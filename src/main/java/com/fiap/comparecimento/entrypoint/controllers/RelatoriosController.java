@@ -15,6 +15,9 @@ import java.time.LocalDate;
 @RequestMapping("/v1")
 public class RelatoriosController implements RelatoriosApi {
 
+    public RelatoriosController() {
+    }
+
     @Override
     public ResponseEntity<IccMedioResponseDto> _consultarIccMedioPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
         return null;

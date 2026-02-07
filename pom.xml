@@ -15,7 +15,6 @@
 	<name>ms-comparecimento</name>
 	<description>Projeto para o Hackathon da FIAP - 5 módulo</description>
 
-
 	<properties>
 		<java.version>21</java.version>
 		<org.mapstruct.version>1.5.3.Final</org.mapstruct.version>

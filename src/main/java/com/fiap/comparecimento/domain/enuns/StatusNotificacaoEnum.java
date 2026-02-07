@@ -1,5 +1,9 @@
 package com.fiap.comparecimento.domain.enuns;
 
+import com.fiap.comparecimento.domain.exception.StatusNotificacaoNotFoundException;
+
+import java.util.Arrays;
+
 public enum StatusNotificacaoEnum {
 
     NAO_ENVIADA(-2.0),
@@ -18,5 +22,16 @@ public enum StatusNotificacaoEnum {
 
     public double getPeso() {
         return peso;
+    }
+
+    public static StatusNotificacaoEnum fromString(String value) {
+        if (value == null) return null;
+
+        return Arrays.stream(values())
+                .filter(e -> e.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() ->
+                        new StatusNotificacaoNotFoundException(value)
+                );
     }
 }

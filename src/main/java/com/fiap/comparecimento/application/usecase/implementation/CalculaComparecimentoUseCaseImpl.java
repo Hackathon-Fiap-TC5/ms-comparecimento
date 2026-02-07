@@ -5,8 +5,8 @@ import com.fiap.comparecimento.application.usecase.CalculaComparecimentoUseCase;
 import com.fiap.comparecimento.domain.enuns.ClassificacaoPacienteEnum;
 import com.fiap.comparecimento.domain.enuns.StatusConsultaEnum;
 import com.fiap.comparecimento.domain.enuns.StatusNotificacaoEnum;
+import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
-import com.fiap.comparecimento.entrypoint.controllers.dto.AgendamentoDTO;
 
 import java.time.OffsetDateTime;
 
@@ -19,21 +19,21 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
     }
 
     @Override
-    public void calculaComparecimento(AgendamentoDTO infos) {
-        PacienteDomain p = pacienteGateway.consultar(infos.getCns());
-        run(p, infos);
+    public void calculaComparecimento(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
+        PacienteDomain pacienteDomain = pacienteGateway.consultar(eventoAgendamentoMessageDomain.getCns());
+        run(pacienteDomain, eventoAgendamentoMessageDomain);
     }
 
     /*
     * Atualiza as infos do paciente apos calculo e classificação de comparecimento
     * */
-    private void run(PacienteDomain p, AgendamentoDTO info){
+    private void run(PacienteDomain p, EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
         int totalComparecimentos = p.getTotalComparecimentos();
         int totalFaltas = p.getTotalFaltas();
         int totalConfirmacoes = p.getTotalConfirmacoes();
         int totalAgendamentos = p.getTotalAgendamentos();
 
-        StatusConsultaEnum status = StatusConsultaEnum.valueOf(info.getStatusConsulta());
+        StatusConsultaEnum status = eventoAgendamentoMessageDomain.getStatusConsulta();
         switch (status){
             case AGENDADO : totalAgendamentos += 1;
             case REALIZADO: totalComparecimentos += 1;
@@ -41,7 +41,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
             case CONFIRMADO: totalConfirmacoes += 1;
         }
 
-        int icc = calculaICC(p, info);
+        int icc = calculaICC(p, eventoAgendamentoMessageDomain);
 
         p.setIcc(icc);
         p.setClassificacao(classificarICC(icc).toString());
@@ -72,7 +72,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
     /*
     * Calcula o ICC com base nos dados do paciente e sobre o evento de agendamento
     * */
-    private Integer calculaICC(PacienteDomain p, AgendamentoDTO dto){
+    private Integer calculaICC(PacienteDomain p, EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
 
         //Dados base para calculo
         double totalAg = Math.max(1, p.getTotalAgendamentos());
@@ -100,7 +100,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
 
 
         //Evento sobre ação recente do paciente
-        double scoreEvento = calculaScoreEvento(dto);
+        double scoreEvento = calculaScoreEvento(eventoAgendamentoMessageDomain);
         double pesoEvento = Math.max(0.05, 1.0 - maturidade);
 
         //ICC bruto estabilizado
@@ -113,11 +113,11 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
     /*
     * Calcula score sobre comportamento realizado entorno de toda a vida de um agendamento
     * */
-    private double calculaScoreEvento(AgendamentoDTO dto){
-        if (dto == null) return 0.0;
+    private double calculaScoreEvento(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
+        if (eventoAgendamentoMessageDomain == null) return 0.0;
 
-        StatusConsultaEnum status = StatusConsultaEnum.valueOf(dto.getStatusConsulta());
-        StatusNotificacaoEnum notificacao = StatusNotificacaoEnum.valueOf(dto.getStatusNotificacao());
+        StatusConsultaEnum status = eventoAgendamentoMessageDomain.getStatusConsulta();
+        StatusNotificacaoEnum notificacao = eventoAgendamentoMessageDomain.getStatusNotificacao();
         double score = 0.0;
 
         // Peso status da consulta

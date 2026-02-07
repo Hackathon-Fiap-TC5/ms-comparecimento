@@ -1,4 +1,4 @@
-package com.fiap.comparecimento.infrastructure.config.usecase.rabbit;
+package com.fiap.comparecimento.infrastructure.config.rabbit;
 
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;

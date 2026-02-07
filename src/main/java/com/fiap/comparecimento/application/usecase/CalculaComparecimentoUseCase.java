@@ -1,8 +1,8 @@
 package com.fiap.comparecimento.application.usecase;
 
-import com.fiap.comparecimento.entrypoint.controllers.dto.AgendamentoDTO;
+import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 
 public interface CalculaComparecimentoUseCase {
 
-    void calculaComparecimento(AgendamentoDTO infos);
+    void calculaComparecimento(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain);
 }

@@ -1,7 +1,7 @@
 package com.fiap.comparecimento.infrastructure.config.usecase;
 
 import com.fiap.comparecimento.application.gateway.PacienteGateway;
-import com.fiap.comparecimento.application.usecase.implementation.CalculaComparecimentoUseCaseImpl;
+import com.fiap.comparecimento.application.usecase.calcula.comparecimento.implementation.CalculaComparecimentoUseCaseImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

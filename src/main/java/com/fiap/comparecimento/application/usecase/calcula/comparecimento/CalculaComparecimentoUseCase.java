@@ -1,4 +1,4 @@
-package com.fiap.comparecimento.application.usecase;
+package com.fiap.comparecimento.application.usecase.calcula.comparecimento;
 
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 

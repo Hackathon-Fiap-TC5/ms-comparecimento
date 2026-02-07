@@ -1,7 +1,7 @@
-package com.fiap.comparecimento.application.usecase.implementation;
+package com.fiap.comparecimento.application.usecase.calcula.comparecimento.implementation;
 
 import com.fiap.comparecimento.application.gateway.PacienteGateway;
-import com.fiap.comparecimento.application.usecase.CalculaComparecimentoUseCase;
+import com.fiap.comparecimento.application.usecase.calcula.comparecimento.CalculaComparecimentoUseCase;
 import com.fiap.comparecimento.domain.enuns.ClassificacaoPacienteEnum;
 import com.fiap.comparecimento.domain.enuns.StatusConsultaEnum;
 import com.fiap.comparecimento.domain.enuns.StatusNotificacaoEnum;

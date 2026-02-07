@@ -1,6 +1,6 @@
 package com.fiap.comparecimento.entrypoint.listeners;
 
-import com.fiap.comparecimento.application.usecase.CalculaComparecimentoUseCase;
+import com.fiap.comparecimento.application.usecase.calcula.comparecimento.CalculaComparecimentoUseCase;
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 import com.fiap.comparecimento.entrypoint.listeners.presenter.ComparecimentoConsumerPresenter;
 import com.fiap.comparecimento.infrastructure.config.rabbit.RabbitMQConfig;

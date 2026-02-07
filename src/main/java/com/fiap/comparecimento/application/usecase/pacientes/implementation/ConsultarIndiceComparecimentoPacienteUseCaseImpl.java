@@ -1,7 +1,7 @@
-package com.fiap.comparecimento.application.usecase.implementation;
+package com.fiap.comparecimento.application.usecase.pacientes.implementation;
 
 import com.fiap.comparecimento.application.gateway.PacienteGateway;
-import com.fiap.comparecimento.application.usecase.ConsultarIndiceComparecimentoPacienteUseCase;
+import com.fiap.comparecimento.application.usecase.pacientes.ConsultarIndiceComparecimentoPacienteUseCase;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
 
 public class ConsultarIndiceComparecimentoPacienteUseCaseImpl implements ConsultarIndiceComparecimentoPacienteUseCase {

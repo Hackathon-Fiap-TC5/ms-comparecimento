@@ -1,4 +1,4 @@
-package com.fiap.comparecimento.application.usecase;
+package com.fiap.comparecimento.application.usecase.pacientes;
 
 import com.fiap.comparecimento.domain.model.PacienteDomain;
 

@@ -1,8 +1,9 @@
 openapi: 3.0.3
+
 info:
   title: API MS Comparecimento SUS
   description: API responsavel por disponibilizar indicadores de comparecimento e absenteismo
-  version: 1.0.0
+  version: 1.1.0
 
 tags:
   - name: Pacientes
@@ -24,6 +25,7 @@ paths:
           required: true
           schema:
             type: string
+            example: 89800112345678
       responses:
         '200':
           description: Indice de comparecimento retornado
@@ -31,13 +33,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IndiceComparecimentoResponse'
+        '404':
+          description: Paciente nao encontrado
 
   /relatorios/absenteismo:
     get:
       tags:
         - Relatorios
-      summary: Consultar relatorio de absenteismo por periodo
-      operationId: consultarRelatorioAbsenteismo
+      summary: Consultar indicadores consolidados por periodo
+      operationId: relatorioAbsenteismoPorPeriodo
       parameters:
         - name: dataInicio
           in: query
@@ -45,50 +49,26 @@ paths:
           schema:
             type: string
             format: date
+            example: 2026-01-01
         - name: dataFim
           in: query
           required: true
           schema:
             type: string
             format: date
+            example: 2026-01-31
       responses:
         '200':
-          description: Relatorio de absenteismo retornado
+          description: Indicadores consolidados retornados
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RelatorioAbsenteismoResponse'
-
-  /relatorios/icc-medio:
-    get:
-      tags:
-        - Relatorios
-      summary: Consultar ICC medio por periodo
-      operationId: consultarIccMedioPorPeriodo
-      parameters:
-        - name: dataInicio
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date
-        - name: dataFim
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date
-      responses:
-        '200':
-          description: ICC medio retornado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IccMedioResponse'
+        '400':
+          description: Periodo invalido
 
 components:
   schemas:
-
     IndiceComparecimentoResponse:
       type: object
       properties:
@@ -96,38 +76,64 @@ components:
           type: string
           example: 89800112345678
         icc:
-          type: integer
-          example: 72
+          type: number
+          example: 72.5
         classificacao:
           type: string
           example: MEDIO_RISCO
         totalComparecimentos:
           type: integer
+          example: 8
+        totalAgendamentos:
+          type: integer
+          example: 8
         totalFaltas:
           type: integer
+          example: 3
         totalConfirmacoes:
           type: integer
+          example: 5
         ultimaAtualizacao:
           type: string
           format: date-time
+          example: 2026-01-20T14:35:00-03:00
 
     RelatorioAbsenteismoResponse:
       type: object
       properties:
-        totalConsultas:
+        periodo:
+          $ref: '#/components/schemas/PeriodoResponse'
+        totalPessoas:
           type: integer
-        totalFaltas:
-          type: integer
-        taxaAbsenteismo:
-          type: number
-          example: 28.5
-
-    IccMedioResponse:
-      type: object
-      properties:
+          example: 320
         iccMedio:
           type: number
           example: 67.4
+        totalConsultas:
+          type: integer
+          example: 1200
+        totalFaltas:
+          type: integer
+          example: 340
+        taxaAbsenteismo:
+          type: number
+          example: 28.3
+        dataGeracao:
+          type: string
+          format: date-time
+          example: 2026-02-01T10:00:00-03:00
+
+    PeriodoResponse:
+      type: object
+      properties:
+        dataInicio:
+          type: string
+          format: date
+          example: 2026-01-01
+        dataFim:
+          type: string
+          format: date
+          example: 2026-01-31
 
     EventoAgendamentoMessage:
       type: object
@@ -138,7 +144,11 @@ components:
           example: 123456789012345
         statusConsulta:
           type: string
-          example: COMPARECEU
+          example: REALIZADO
         statusNotificacao:
           type: string
-          example: CONFIRMADO_24H
+          example: CONFIRMOU_24H
+        dataEvento:
+          type: string
+          format: date-time
+          example: 2026-01-15T09:30:00-03:00

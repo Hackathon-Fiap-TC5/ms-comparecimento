@@ -1,6 +1,6 @@
 package com.fiap.comparecimento.entrypoint.controllers;
 
-import com.fiap.comparecimento.application.usecase.ConsultarIndiceComparecimentoPacienteUseCase;
+import com.fiap.comparecimento.application.usecase.pacientes.ConsultarIndiceComparecimentoPacienteUseCase;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
 import com.fiap.comparecimento.entrypoint.controllers.presenter.IndiceComparecimentoPacientePresenter;
 import com.fiap.comparecimentoDomain.PacientesApi;

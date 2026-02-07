@@ -1,7 +1,9 @@
 package com.fiap.comparecimento.entrypoint.controllers;
 
+import com.fiap.comparecimento.application.usecase.relatorios.ConsultarIndicadoresPorPeriodoUseCase;
+import com.fiap.comparecimento.domain.model.RelatorioAbsenteismoDomain;
+import com.fiap.comparecimento.entrypoint.controllers.presenter.RelatoriosPresenter;
 import com.fiap.comparecimentoDomain.RelatoriosApi;
-import com.fiap.comparecimentoDomain.gen.model.IccMedioResponseDto;
 import com.fiap.comparecimentoDomain.gen.model.RelatorioAbsenteismoResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,16 +17,16 @@ import java.time.LocalDate;
 @RequestMapping("/v1")
 public class RelatoriosController implements RelatoriosApi {
 
-    public RelatoriosController() {
+    private final ConsultarIndicadoresPorPeriodoUseCase consultarIndicadoresPorPeriodoUseCase;
+
+    public RelatoriosController(ConsultarIndicadoresPorPeriodoUseCase consultarIndicadoresPorPeriodoUseCase) {
+        this.consultarIndicadoresPorPeriodoUseCase = consultarIndicadoresPorPeriodoUseCase;
     }
 
     @Override
-    public ResponseEntity<IccMedioResponseDto> _consultarIccMedioPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<RelatorioAbsenteismoResponseDto> _consultarRelatorioAbsenteismo(LocalDate dataInicio, LocalDate dataFim) {
-        return null;
+    public ResponseEntity<RelatorioAbsenteismoResponseDto> _relatorioAbsenteismoPorPeriodo(LocalDate dataInicio, LocalDate dataFim) {
+        RelatorioAbsenteismoDomain domain = consultarIndicadoresPorPeriodoUseCase.consultar(dataInicio, dataFim);
+        RelatorioAbsenteismoResponseDto responseDto = RelatoriosPresenter.toRelatorioAbsenteismoResponseDto(domain);
+        return ResponseEntity.ok(responseDto);
     }
 }

@@ -90,9 +90,14 @@ public class DataSourceLazyConfig {
         config.addDataSourceProperty("ipTypes", ipTypes);
         // "lazy" refresh avoids background CPU usage in serverless environments
         config.addDataSourceProperty("cloudSqlRefreshStrategy", "lazy");
+        // Additional CloudSQL properties for better connectivity
+        config.addDataSourceProperty("enableIamAuth", "false");
         // Additional MySQL properties
         config.addDataSourceProperty("useSSL", "false");
         config.addDataSourceProperty("serverTimezone", "UTC");
+        config.addDataSourceProperty("allowPublicKeyRetrieval", "true");
+        config.addDataSourceProperty("useUnicode", "true");
+        config.addDataSourceProperty("characterEncoding", "UTF-8");
 
         log.info("HikariCP configured with CloudSQL socket factory");
         return new HikariDataSource(config);
@@ -125,8 +130,17 @@ public class DataSourceLazyConfig {
         properties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
         properties.put("hibernate.format_sql", "true");
         properties.put("hibernate.jdbc.time_zone", "UTC");
+        // Prevent Hibernate from trying to connect during startup
         properties.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
+        properties.put("hibernate.boot.allow_jdbc_metadata_access", "false");
+        // Skip schema validation during startup
+        properties.put("hibernate.session_factory.statement_inspector", "");
+        // Don't validate database connection during EntityManagerFactory creation
+        properties.put("jakarta.persistence.validation.mode", "none");
         em.setJpaPropertyMap(properties);
+        
+        // Don't validate schema on startup
+        em.setValidationMode(jakarta.persistence.ValidationMode.NONE);
 
         return em;
     }

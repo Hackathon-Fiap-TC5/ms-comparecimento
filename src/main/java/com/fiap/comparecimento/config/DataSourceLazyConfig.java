@@ -25,8 +25,8 @@ import jakarta.persistence.EntityManagerFactory;
 /**
  * Manual JPA/DataSource configuration for Cloud Run.
  *
- * Connects directly to CloudSQL via private IP (TCP).
- * Requires VPC connector or Direct VPC egress to reach the private IP.
+ * Uses Cloud SQL Socket Factory to connect via public IP.
+ * The Cloud SQL Auth Proxy handles encryption automatically.
  *
  * ddl-auto is set to "none" so startup never needs a live DB.
  * Tables must be created beforehand.
@@ -53,8 +53,14 @@ public class DataSourceLazyConfig {
     @Value("${spring.datasource.driver-class-name}")
     private String dbDriverClassName;
 
+    @Value("${spring.datasource.cloud-sql-instance}")
+    private String cloudSqlInstance;
+
+    @Value("${spring.datasource.ip-types:PUBLIC}")
+    private String ipTypes;
+
     /**
-     * HikariCP DataSource connecting directly to CloudSQL private IP via TCP.
+     * HikariCP DataSource configured with Cloud SQL Socket Factory.
      */
     private DataSource realDataSource() {
         HikariConfig config = new HikariConfig();
@@ -67,13 +73,15 @@ public class DataSourceLazyConfig {
         config.setConnectionTimeout(30000);
         config.setInitializationFailTimeout(-1);
 
+        // Cloud SQL Socket Factory configuration
+        config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.mysql.SocketFactory");
+        config.addDataSourceProperty("cloudSqlInstance", cloudSqlInstance);
+        config.addDataSourceProperty("ipTypes", ipTypes);
+        config.addDataSourceProperty("cloudSqlRefreshStrategy", "lazy");
+
         return new HikariDataSource(config);
     }
 
-    /**
-     * Wraps the real DataSource in a lazy proxy so Hibernate can build its
-     * SessionFactory without opening a real JDBC connection.
-     */
     @Bean
     public DataSource dataSource() {
         return new LazyConnectionDataSourceProxy(realDataSource());

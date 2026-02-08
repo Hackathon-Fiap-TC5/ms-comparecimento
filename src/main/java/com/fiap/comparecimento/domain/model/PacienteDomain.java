@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 @Setter
 public class PacienteDomain {
 
+    private Long id;
     private String cns;
     private Integer icc;
     private String classificacao;

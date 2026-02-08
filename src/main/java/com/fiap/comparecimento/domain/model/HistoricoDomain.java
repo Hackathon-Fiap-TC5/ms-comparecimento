@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 
 public class HistoricoDomain {
 
+    private Long id;
     private String cns;
     private Long idAgendamento;
     private String statusConsulta;
@@ -17,6 +18,14 @@ public class HistoricoDomain {
         this.statusConsulta = statusConsulta;
         this.statusNotificacao = statusNotificacao;
         this.dataEvento = dataEvento;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getCns() {

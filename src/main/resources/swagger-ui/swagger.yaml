@@ -139,6 +139,10 @@ components:
       type: object
       description: Evento de agendamento publicado via mensageria
       properties:
+        idAgendamento:
+          type: integer
+          format: int64
+          example: 1
         cns:
           type: string
           example: 123456789012345

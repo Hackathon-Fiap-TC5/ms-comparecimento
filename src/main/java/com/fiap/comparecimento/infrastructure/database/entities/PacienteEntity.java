@@ -17,6 +17,9 @@ public class PacienteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "cns")
     private String cns;
 
     private Integer icc;

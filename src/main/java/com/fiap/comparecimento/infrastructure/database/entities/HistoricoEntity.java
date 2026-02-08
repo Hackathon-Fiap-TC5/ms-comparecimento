@@ -12,6 +12,9 @@ public class HistoricoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "idAgendamento")
     private Long idAgendamento;
 
     @Column(name = "cns")

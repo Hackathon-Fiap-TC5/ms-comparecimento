@@ -35,12 +35,12 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
 
         StatusConsultaEnum status = eventoAgendamentoMessageDomain.getStatusConsulta();
 
-        switch (status){
-            case AGENDADO : totalAgendamentos += 1;
-            case REALIZADO: totalComparecimentos += 1;
-            case FALTA: totalFaltas += 1;
-            case CONFIRMADO: totalConfirmacoes += 1;
-            case CANCELADO: totalCancelamentos += 1;
+        switch (status) {
+            case AGENDADO -> totalAgendamentos++;
+            case REALIZADO -> totalComparecimentos++;
+            case FALTA -> totalFaltas++;
+            case CONFIRMADO -> totalConfirmacoes++;
+            case CANCELADO -> totalCancelamentos++;
         }
 
         int icc = calculaICC(pacienteDomain, eventoAgendamentoMessageDomain);

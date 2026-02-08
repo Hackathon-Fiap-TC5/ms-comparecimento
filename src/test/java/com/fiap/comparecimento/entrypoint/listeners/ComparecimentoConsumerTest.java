@@ -1,6 +1,6 @@
 package com.fiap.comparecimento.entrypoint.listeners;
 
-import com.fiap.comparecimento.application.usecase.calcula.comparecimento.CalculaComparecimentoUseCase;
+import com.fiap.comparecimento.application.usecase.calcula.comparecimento.ProcessarComparecimentoUseCase;
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 import com.fiap.comparecimentoDomain.gen.model.EventoAgendamentoMessageDto;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.*;
 class ComparecimentoConsumerTest {
 
     @Mock
-    private CalculaComparecimentoUseCase calculaComparecimentoUseCase;
+    private ProcessarComparecimentoUseCase processarComparecimentoUseCase;
 
     @InjectMocks
     private ComparecimentoConsumer consumer;
@@ -35,25 +35,25 @@ class ComparecimentoConsumerTest {
     @Test
     void deveProcessarMensagemComSucesso() {
         // Given
-        doNothing().when(calculaComparecimentoUseCase).calculaComparecimento(any(EventoAgendamentoMessageDomain.class));
+        doNothing().when(processarComparecimentoUseCase).processaComparecimento(any(EventoAgendamentoMessageDomain.class));
 
         // When
         consumer.consumer(dto);
 
         // Then
-        verify(calculaComparecimentoUseCase, times(1)).calculaComparecimento(any(EventoAgendamentoMessageDomain.class));
+        verify(processarComparecimentoUseCase, times(1)).processaComparecimento(any(EventoAgendamentoMessageDomain.class));
     }
 
     @Test
     void deveConverterDtoParaDomain() {
         // Given
-        doNothing().when(calculaComparecimentoUseCase).calculaComparecimento(any(EventoAgendamentoMessageDomain.class));
+        doNothing().when(processarComparecimentoUseCase).processaComparecimento(any(EventoAgendamentoMessageDomain.class));
 
         // When
         consumer.consumer(dto);
 
         // Then
-        verify(calculaComparecimentoUseCase).calculaComparecimento(any(EventoAgendamentoMessageDomain.class));
+        verify(processarComparecimentoUseCase).processaComparecimento(any(EventoAgendamentoMessageDomain.class));
     }
 
     @Test
@@ -61,13 +61,13 @@ class ComparecimentoConsumerTest {
         // Given
         dto.setStatusConsulta("FALTA");
         dto.setStatusNotificacao("EXPIRADA");
-        doNothing().when(calculaComparecimentoUseCase).calculaComparecimento(any(EventoAgendamentoMessageDomain.class));
+        doNothing().when(processarComparecimentoUseCase).processaComparecimento(any(EventoAgendamentoMessageDomain.class));
 
         // When
         consumer.consumer(dto);
 
         // Then
-        verify(calculaComparecimentoUseCase).calculaComparecimento(any(EventoAgendamentoMessageDomain.class));
+        verify(processarComparecimentoUseCase).processaComparecimento(any(EventoAgendamentoMessageDomain.class));
     }
 
     @Test
@@ -75,12 +75,12 @@ class ComparecimentoConsumerTest {
         // Given
         dto.setStatusConsulta("CONFIRMADO");
         dto.setStatusNotificacao("CONFIRMOU_48H_ANTECEDENCIA");
-        doNothing().when(calculaComparecimentoUseCase).calculaComparecimento(any(EventoAgendamentoMessageDomain.class));
+        doNothing().when(processarComparecimentoUseCase).processaComparecimento(any(EventoAgendamentoMessageDomain.class));
 
         // When
         consumer.consumer(dto);
 
         // Then
-        verify(calculaComparecimentoUseCase).calculaComparecimento(any(EventoAgendamentoMessageDomain.class));
+        verify(processarComparecimentoUseCase).processaComparecimento(any(EventoAgendamentoMessageDomain.class));
     }
 }

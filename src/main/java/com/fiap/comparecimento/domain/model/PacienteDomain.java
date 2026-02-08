@@ -15,19 +15,22 @@ public class PacienteDomain {
     private Integer totalComparecimentos;
     private Integer totalFaltas;
     private Integer totalConfirmacoes;
+    private Integer totalCancelamentos;
     private Integer totalAgendamentos;
     private OffsetDateTime ultimaAtualizacao;
 
     public PacienteDomain() {
     }
 
-    public PacienteDomain(String cns, Integer icc, String classificacao, Integer totalComparecimentos, Integer totalFaltas, Integer totalConfirmacoes, Integer totalAgendamentos, OffsetDateTime ultimaAtualizacao) {
+    public PacienteDomain(String cns, Integer icc, String classificacao, Integer totalComparecimentos, Integer totalFaltas, Integer totalConfirmacoes,
+                          Integer totalCancelamentos, Integer totalAgendamentos, OffsetDateTime ultimaAtualizacao) {
         this.cns = cns;
         this.icc = icc;
         this.classificacao = classificacao;
         this.totalComparecimentos = totalComparecimentos;
         this.totalFaltas = totalFaltas;
         this.totalConfirmacoes = totalConfirmacoes;
+        this.totalCancelamentos = totalCancelamentos;
         this.totalAgendamentos = totalAgendamentos;
         this.ultimaAtualizacao = ultimaAtualizacao;
     }

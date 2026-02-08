@@ -32,6 +32,9 @@ public class PacienteEntity {
     @Column(name = "total_confirmacoes")
     private Integer totalConfirmacoes;
 
+    @Column(name = "total_cancelamentos")
+    private Integer totalCancelamentos;
+
     @Column(name = "total_agendamentos")
     private Integer totalAgendamentos;
 

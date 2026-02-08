@@ -31,14 +31,17 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         int totalComparecimentos = pacienteDomain.getTotalComparecimentos();
         int totalFaltas = pacienteDomain.getTotalFaltas();
         int totalConfirmacoes = pacienteDomain.getTotalConfirmacoes();
+        int totalCancelamentos = pacienteDomain.getTotalCancelamentos();
         int totalAgendamentos = pacienteDomain.getTotalAgendamentos();
 
         StatusConsultaEnum status = eventoAgendamentoMessageDomain.getStatusConsulta();
+
         switch (status){
             case AGENDADO : totalAgendamentos += 1;
             case REALIZADO: totalComparecimentos += 1;
             case FALTA: totalFaltas += 1;
             case CONFIRMADO: totalConfirmacoes += 1;
+            case CANCELADO: totalCancelamentos += 1;
         }
 
         int icc = calculaICC(pacienteDomain, eventoAgendamentoMessageDomain);
@@ -48,6 +51,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         pacienteDomain.setTotalComparecimentos(totalComparecimentos);
         pacienteDomain.setTotalFaltas(totalFaltas);
         pacienteDomain.setTotalConfirmacoes(totalConfirmacoes);
+        pacienteDomain.setTotalCancelamentos(totalCancelamentos);
         pacienteDomain.setTotalAgendamentos(totalAgendamentos);
         pacienteDomain.setUltimaAtualizacao(OffsetDateTime.now());
         pacienteGateway.atualizarInformacoesPaciente(pacienteDomain);

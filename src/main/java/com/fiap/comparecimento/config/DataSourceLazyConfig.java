@@ -21,6 +21,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import jakarta.persistence.EntityManagerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Manual JPA/DataSource configuration for Cloud Run.
@@ -32,6 +33,7 @@ import jakarta.persistence.EntityManagerFactory;
  * ddl-auto is set to "none" so startup never needs a live DB.
  * Tables must be created beforehand (e.g. via a migration tool or manually).
  */
+@Slf4j
 @Configuration
 @Profile("!local")
 @EnableTransactionManagement
@@ -65,6 +67,10 @@ public class DataSourceLazyConfig {
      * Uses "lazy" refresh strategy as recommended by Google for serverless.
      */
     private DataSource realDataSource() {
+        log.info("Configuring CloudSQL DataSource with instance: {}", cloudSqlInstance);
+        log.info("JDBC URL: {}", dbUrl);
+        log.info("Database: feedback, Username: {}", dbUsername != null && !dbUsername.isEmpty() ? "***" : "NOT SET");
+        
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(dbUrl);
         config.setUsername(dbUsername);
@@ -72,8 +78,11 @@ public class DataSourceLazyConfig {
         config.setDriverClassName(dbDriverClassName);
         config.setMaximumPoolSize(5);
         config.setMinimumIdle(0);
-        config.setConnectionTimeout(30000);
+        // Increase connection timeout for CloudSQL (60 seconds)
+        config.setConnectionTimeout(60000);
         config.setInitializationFailTimeout(-1);
+        config.setValidationTimeout(5000);
+        config.setLeakDetectionThreshold(60000);
 
         // Cloud SQL Socket Factory configuration
         config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.mysql.SocketFactory");
@@ -81,7 +90,11 @@ public class DataSourceLazyConfig {
         config.addDataSourceProperty("ipTypes", ipTypes);
         // "lazy" refresh avoids background CPU usage in serverless environments
         config.addDataSourceProperty("cloudSqlRefreshStrategy", "lazy");
+        // Additional MySQL properties
+        config.addDataSourceProperty("useSSL", "false");
+        config.addDataSourceProperty("serverTimezone", "UTC");
 
+        log.info("HikariCP configured with CloudSQL socket factory");
         return new HikariDataSource(config);
     }
 

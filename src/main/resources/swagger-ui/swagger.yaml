@@ -13,7 +13,7 @@ tags:
 
 paths:
 
-  /pacientes/{cns}/indice-comparecimento:
+  /pacientes/indice-comparecimento:
     get:
       tags:
         - Pacientes
@@ -21,7 +21,7 @@ paths:
       operationId: consultarIndiceComparecimentoPaciente
       parameters:
         - name: cns
-          in: path
+          in: query
           required: true
           schema:
             type: string
@@ -88,6 +88,9 @@ components:
           type: integer
           example: 8
         totalFaltas:
+          type: integer
+          example: 3
+        totalCancelamentos:
           type: integer
           example: 3
         totalConfirmacoes:

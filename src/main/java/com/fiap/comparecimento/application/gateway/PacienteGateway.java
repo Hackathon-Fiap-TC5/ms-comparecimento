@@ -4,10 +4,13 @@ import com.fiap.comparecimento.domain.model.PacienteDomain;
 import com.fiap.comparecimento.domain.model.RelatorioAbsenteismoDomain;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 public interface PacienteGateway {
 
     PacienteDomain consultar(String cns);
+
+    Optional<PacienteDomain> buscarPorCns(String cns);
 
     void atualizarInformacoesPaciente(PacienteDomain domain);
 

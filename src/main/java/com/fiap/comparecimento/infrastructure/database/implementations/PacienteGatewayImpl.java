@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,12 @@ public class PacienteGatewayImpl implements PacienteGateway {
         return pacienteRepository.getByCns(cns)
                 .map(PacienteEntityMapper.INSTANCE::toPacienteDomain)
                 .orElseThrow(PacienteNotFoundException::new);
+    }
+
+    @Override
+    public Optional<PacienteDomain> buscarPorCns(String cns) {
+        return pacienteRepository.getByCns(cns)
+                .map(PacienteEntityMapper.INSTANCE::toPacienteDomain);
     }
 
     @Override

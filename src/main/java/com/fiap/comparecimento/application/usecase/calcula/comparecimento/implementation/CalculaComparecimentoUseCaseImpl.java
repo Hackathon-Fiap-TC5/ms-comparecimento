@@ -2,12 +2,10 @@ package com.fiap.comparecimento.application.usecase.calcula.comparecimento.imple
 
 import com.fiap.comparecimento.application.gateway.PacienteGateway;
 import com.fiap.comparecimento.application.usecase.calcula.comparecimento.CalculaComparecimentoUseCase;
-import com.fiap.comparecimento.application.usecase.historico.AdicionaItemHistoricoUseCase;
 import com.fiap.comparecimento.domain.enuns.ClassificacaoPacienteEnum;
 import com.fiap.comparecimento.domain.enuns.StatusConsultaEnum;
 import com.fiap.comparecimento.domain.enuns.StatusNotificacaoEnum;
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
-import com.fiap.comparecimento.domain.model.HistoricoDomain;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
 
 import java.time.OffsetDateTime;
@@ -15,17 +13,13 @@ import java.time.OffsetDateTime;
 public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUseCase {
 
     private final PacienteGateway pacienteGateway;
-    private final AdicionaItemHistoricoUseCase adicionaItemHistoricoUseCase;
 
-    public CalculaComparecimentoUseCaseImpl(PacienteGateway pacienteGateway,
-                                            AdicionaItemHistoricoUseCase adicionaItemHistoricoUseCase) {
+    public CalculaComparecimentoUseCaseImpl(PacienteGateway pacienteGateway) {
         this.pacienteGateway = pacienteGateway;
-        this.adicionaItemHistoricoUseCase = adicionaItemHistoricoUseCase;
     }
 
     @Override
-    public void calculaComparecimento(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
-        PacienteDomain pacienteDomain = pacienteGateway.consultar(eventoAgendamentoMessageDomain.getCns());
+    public void calculaComparecimento(PacienteDomain pacienteDomain, EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
         executarFluxoIcc(pacienteDomain, eventoAgendamentoMessageDomain);
     }
 
@@ -60,18 +54,6 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         pacienteDomain.setTotalAgendamentos(totalAgendamentos);
         pacienteDomain.setUltimaAtualizacao(OffsetDateTime.now());
         pacienteGateway.atualizarInformacoesPaciente(pacienteDomain);
-        adicionaItemHistoricoUseCase.adicionaItemHistorico(buildHistorico(eventoAgendamentoMessageDomain));
-    }
-
-    private HistoricoDomain buildHistorico(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
-        HistoricoDomain historicoDomain = new HistoricoDomain(
-                eventoAgendamentoMessageDomain.getCns(),
-                eventoAgendamentoMessageDomain.getIdAgendamento(),
-                eventoAgendamentoMessageDomain.getStatusConsulta().toString(),
-                eventoAgendamentoMessageDomain.getStatusNotificacao().toString(),
-                eventoAgendamentoMessageDomain.getDataEvento()
-        );
-        return historicoDomain;
     }
 
     /*

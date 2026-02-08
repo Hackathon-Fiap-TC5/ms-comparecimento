@@ -85,13 +85,14 @@ public class DataSourceLazyConfig {
         config.setLeakDetectionThreshold(60000);
 
         // Cloud SQL Socket Factory configuration
+        // According to Google Cloud docs: https://docs.cloud.google.com/sql/docs/mysql/connect-run
         config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.mysql.SocketFactory");
         config.addDataSourceProperty("cloudSqlInstance", cloudSqlInstance);
+        // Use PRIVATE with PUBLIC fallback for better reliability
+        // If only PRIVATE is needed, use "PRIVATE", otherwise "PUBLIC,PRIVATE" allows fallback
         config.addDataSourceProperty("ipTypes", ipTypes);
         // "lazy" refresh avoids background CPU usage in serverless environments
         config.addDataSourceProperty("cloudSqlRefreshStrategy", "lazy");
-        // Additional CloudSQL properties for better connectivity
-        config.addDataSourceProperty("enableIamAuth", "false");
         // Additional MySQL properties
         config.addDataSourceProperty("useSSL", "false");
         config.addDataSourceProperty("serverTimezone", "UTC");
@@ -133,8 +134,6 @@ public class DataSourceLazyConfig {
         // Prevent Hibernate from trying to connect during startup
         properties.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
         properties.put("hibernate.boot.allow_jdbc_metadata_access", "false");
-        // Skip schema validation during startup
-        properties.put("hibernate.session_factory.statement_inspector", "");
         // Don't validate database connection during EntityManagerFactory creation
         properties.put("jakarta.persistence.validation.mode", "none");
         em.setJpaPropertyMap(properties);

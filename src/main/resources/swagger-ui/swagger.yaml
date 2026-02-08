@@ -148,10 +148,10 @@ components:
           example: 123456789012345
         statusConsulta:
           type: string
-          example: REALIZADO
+          example: AGENDADO
         statusNotificacao:
           type: string
-          example: CONFIRMOU_24H
+          example: AGENDADO
         dataEvento:
           type: string
           format: date-time

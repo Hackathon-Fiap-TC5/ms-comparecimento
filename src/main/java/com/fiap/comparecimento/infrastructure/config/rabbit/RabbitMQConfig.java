@@ -15,9 +15,17 @@ public class RabbitMQConfig {
     public static final String EXCHANGE = "agendamento.exchange";
     public static final String ROUTING_KEY = "agendamento.key";
 
+    public static final String QUEUE_ROLLBACK = "agendamento.queue";
+    public static final String ROUTING_KEY_ROLLBACK = "agendamento.rollback";
+
     @Bean
     public Queue comparecimentoQueue(){
         return QueueBuilder.durable(QUEUE).build();
+    }
+
+    @Bean
+    public Queue agendamentoRollBackQueue(){
+        return QueueBuilder.durable(QUEUE_ROLLBACK).build();
     }
 
     @Bean
@@ -28,6 +36,11 @@ public class RabbitMQConfig {
     @Bean
     public Binding binding(){
         return BindingBuilder.bind(comparecimentoQueue()).to(agendamentoExchange()).with(ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding rollBackBinding(){
+        return BindingBuilder.bind(agendamentoRollBackQueue()).to(agendamentoExchange()).with(ROUTING_KEY_ROLLBACK);
     }
 
     @Bean

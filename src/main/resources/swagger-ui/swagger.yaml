@@ -159,3 +159,17 @@ components:
           type: string
           format: date-time
           example: 2026-01-15T09:30:00-03:00
+
+    EventoComparecimentoMessage:
+      type: object
+      description: Evento de agendamento publicado via mensageria
+      properties:
+        sugestaoConduta:
+          type: string
+          example: MANTER_FLUXO_PADRAO
+        iccScore:
+          type: integer
+          example: 92
+        justificativa:
+          type: string
+          example: Paciente com ICC de 92%. Classificado como 'Confiável'

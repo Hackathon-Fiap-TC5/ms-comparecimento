@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `tb_paciente` (
     `total_comparecimentos` INT DEFAULT 0 COMMENT 'Total de comparecimentos',
     `total_faltas` INT DEFAULT 0 COMMENT 'Total de faltas',
     `total_confirmacoes` INT DEFAULT 0 COMMENT 'Total de confirmações',
+    `total_cancelamentos` INT DEFAULT 0 COMMENT 'Total de cancelamentos',
     `total_agendamentos` INT DEFAULT 0 COMMENT 'Total de agendamentos',
     `ultima_atualizacao` TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Data e hora da última atualização',
     PRIMARY KEY (`cns`),
@@ -28,6 +29,22 @@ CREATE TABLE IF NOT EXISTS `tb_paciente` (
     INDEX `idx_classificacao` (`classificacao`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Tabela de pacientes com índices de comparecimento';
+
+-- ============================================
+-- Table: tb_historico
+-- Stores event history for appointments
+-- ============================================
+CREATE TABLE IF NOT EXISTS `tb_historico` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+    `idAgendamento` BIGINT NOT NULL COMMENT 'ID do agendamento',
+    `cns` VARCHAR(15) NOT NULL COMMENT 'Cartão Nacional de Saúde do paciente',
+    `status_consulta` VARCHAR(50) DEFAULT NULL COMMENT 'Status da consulta (AGENDADO, REALIZADO, FALTA, etc.)',
+    `status_notificacao` VARCHAR(50) DEFAULT NULL COMMENT 'Status da notificação (ENVIADA, ENTREGUE, etc.)',
+    `data_evento` TIMESTAMP(6) DEFAULT NULL COMMENT 'Data e hora do evento',
+    PRIMARY KEY (`id`),
+    INDEX `idx_historico_agendamento_cns` (`idAgendamento`, `cns`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+COMMENT='Tabela de histórico de eventos de agendamento';
 
 -- ============================================
 -- Initial Data (Optional - for testing)

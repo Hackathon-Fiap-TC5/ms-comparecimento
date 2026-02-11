@@ -275,7 +275,7 @@
 								<rule>
 									<element>PACKAGE</element>
 									<includes>
-										<include>com/ms/comparecimento/**</include>
+										<include>com/fiap/comparecimento/**</include>
 									</includes>
 									<limits>
 										<limit>

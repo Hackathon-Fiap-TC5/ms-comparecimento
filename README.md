@@ -54,22 +54,31 @@ ms-comparecimento/
 │   ├── exception/      # Exceções de domínio
 │   └── model/          # Entidades de domínio
 ├── application/         # Camada de aplicação (casos de uso)
-│   ├── gateway/        # Interfaces de portas de saída
+│   ├── gateway/        # Interfaces de portas de saída (PacienteGateway, HistoricoGateway)
 │   └── usecase/        # Casos de uso da aplicação
+│       ├── calcula/comparecimento/   # Cálculo e processamento de ICC
+│       ├── historico/               # Histórico de eventos (adicionar, consultar)
+│       ├── pacientes/                # Consulta de pacientes
+│       └── relatorios/               # Relatórios gerenciais
 ├── infrastructure/      # Camada de infraestrutura
 │   ├── config/         # Configurações (RabbitMQ, Beans)
 │   └── database/       # Implementações de persistência
-└── entrypoint/          # Camada de entrada (controllers, listeners)
+└── entrypoint/          # Camada de entrada (controllers, listeners, producer)
     ├── controllers/    # REST Controllers
-    └── listeners/      # Message Listeners (RabbitMQ)
+    ├── listeners/      # Message Listeners (RabbitMQ - consumo)
+    └── producer/       # Message Producer (RabbitMQ - envio de sugestões)
 ```
 
 ### Fluxo de Dados
 
 1. **Eventos de Agendamento**: Recebidos via RabbitMQ na fila `comparecimento.queue`
-2. **Processamento**: O `ComparecimentoConsumer` processa os eventos e chama o caso de uso de cálculo
-3. **Cálculo**: O `CalculaComparecimentoUseCase` calcula o novo ICC e atualiza os dados do paciente
-4. **Persistência**: Dados são salvos no banco MySQL através do `PacienteGateway`
+2. **Processamento**: O `ComparecimentoConsumer` processa os eventos e delega ao `ProcessarComparecimentoUseCase`
+3. **Processamento Completo**: O `ProcessarComparecimentoUseCase` orquestra:
+   - Criação de paciente novo (se não existir)
+   - Cálculo do ICC via `CalculaComparecimentoUseCase`
+   - Registro de histórico via `AdicionaItemHistoricoUseCase`
+   - Envio de sugestões de conduta via `ComparecimentoProducer` (fila `agendamento.rollback`)
+4. **Persistência**: Dados são salvos no MySQL através de `PacienteGateway` e `HistoricoGateway`
 5. **Consultas**: APIs REST permitem consultar dados individuais ou gerar relatórios
 
 ## 🛠️ Tecnologias
@@ -306,6 +315,21 @@ O ICC é classificado em 9 categorias:
 | ≥ 20 | REALOCACAO_POSSIVEL |
 | < 20 | REALOCACAO_IMEDIATA |
 
+### Sugestão de Conduta
+
+Com base na classificação, o sistema sugere uma conduta para o agendamento:
+
+| Classificação | Sugestão |
+|---------------|----------|
+| MUITO_CONFIAVEL | MANTER_FLUXO |
+| CONFIAVEL, COMPARECIMENTO_PROVAVEL | MONITORAR |
+| COMPARECIMENTO_INCERTO | CONFIRMAR_AGENDAMENTO |
+| BAIXA_PROBABILIDADE_DE_COMPARECIMENTO | REAGENDAMENTO_PREVENTIVO |
+| PROVAVEL_NAO_COMPARECIMENTO, CRITICO, REALOCACAO_POSSIVEL | ALOCACAO_ALTERNATIVA |
+| REALOCACAO_IMEDIATA | REALOCACAO_IMEDIATA |
+
+As sugestões são publicadas na fila `agendamento.rollback` (routing key `agendamento.rollback`) para integração com outros sistemas.
+
 ### Status de Consulta
 
 - **AGENDADO**: Consulta foi agendada
@@ -330,29 +354,32 @@ O ICC é classificado em 9 categorias:
 src/main/java/com/fiap/comparecimento/
 ├── application/
 │   ├── gateway/
-│   │   └── PacienteGateway.java              # Interface para acesso a dados de pacientes
+│   │   ├── PacienteGateway.java              # Interface para acesso a dados de pacientes
+│   │   └── HistoricoGateway.java             # Interface para histórico de eventos
 │   └── usecase/
-│       ├── calcula/comparecimento/           # Caso de uso: cálculo de comparecimento
-│       ├── pacientes/                        # Caso de uso: consulta de pacientes
-│       └── relatorios/                       # Caso de uso: relatórios
+│       ├── calcula/comparecimento/            # CalculaComparecimentoUseCase, ProcessarComparecimentoUseCase
+│       ├── historico/                        # AdicionaItemHistoricoUseCase, ConsultaHistoricoUseCase
+│       ├── pacientes/                        # ConsultarIndiceComparecimentoPacienteUseCase
+│       └── relatorios/                       # ConsultarIndicadoresPorPeriodoUseCase
 ├── domain/
 │   ├── enuns/                                # Enumeradores do domínio
-│   ├── exception/                            # Exceções de domínio
+│   ├── exception/                             # Exceções de domínio
 │   └── model/                                # Entidades de domínio
 ├── entrypoint/
 │   ├── controllers/                          # REST Controllers
-│   └── listeners/                            # Message Listeners (RabbitMQ)
+│   ├── listeners/                            # ComparecimentoConsumer (consumo RabbitMQ)
+│   └── producer/                             # ComparecimentoProducer (envio sugestões)
 ├── infrastructure/
 │   ├── config/                               # Configurações
-│   └── database/                             # Implementações de persistência
-└── utils/                                     # Utilitários
+│   └── database/                             # PacienteGatewayImpl, HistoricoGatewayImpl
+└── utils/                                    # Utilitários
 ```
 
 ## 🗄️ Banco de Dados
 
 ### Schema
 
-A tabela principal é `tb_paciente`:
+#### Tabela `tb_paciente`
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
@@ -366,28 +393,51 @@ A tabela principal é `tb_paciente`:
 | `total_agendamentos` | INT | Total de agendamentos |
 | `ultima_atualizacao` | TIMESTAMP(6) | Data/hora da última atualização |
 
+#### Tabela `tb_historico`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | BIGINT | ID único (PK, auto-increment) |
+| `idAgendamento` | BIGINT | ID do agendamento |
+| `cns` | VARCHAR(15) | Cartão Nacional de Saúde do paciente |
+| `status_consulta` | VARCHAR(50) | Status da consulta (AGENDADO, REALIZADO, FALTA, etc.) |
+| `status_notificacao` | VARCHAR(50) | Status da notificação (ENVIADA, ENTREGUE, etc.) |
+| `data_evento` | TIMESTAMP(6) | Data/hora do evento |
+
 ### Índices
 
+**tb_paciente:**
 - **PRIMARY KEY**: `cns`
 - **INDEX**: `idx_ultima_atualizacao` (para consultas por período)
 - **INDEX**: `idx_classificacao` (para filtros por classificação)
+
+**tb_historico:**
+- **PRIMARY KEY**: `id`
+- **INDEX**: `idx_historico_agendamento_cns` (para consultas por agendamento e CNS)
 
 ## 📨 Mensageria
 
 ### RabbitMQ
 
-A aplicação consome eventos de agendamento da fila `comparecimento.queue`.
+A aplicação consome eventos de agendamento e publica sugestões de conduta via RabbitMQ.
 
-#### Configuração
+#### Configuração: Consumo (Entrada)
 
 - **Exchange**: `agendamento.exchange` (Topic Exchange)
 - **Queue**: `comparecimento.queue` (Durable)
 - **Routing Key**: `agendamento.key`
 
-#### Formato da Mensagem
+#### Configuração: Produção (Saída)
+
+- **Exchange**: `agendamento.exchange`
+- **Queue**: `agendamento.queue`
+- **Routing Key**: `agendamento.rollback` (para sugestões de conduta)
+
+#### Formato da Mensagem (Entrada)
 
 ```json
 {
+  "idAgendamento": 1,
   "cns": "123456789012345",
   "statusConsulta": "REALIZADO",
   "statusNotificacao": "CONFIRMOU_24H",
@@ -395,12 +445,27 @@ A aplicação consome eventos de agendamento da fila `comparecimento.queue`.
 }
 ```
 
+#### Formato da Mensagem de Saída (Sugestões)
+
+```json
+{
+  "idAgendamento": 1,
+  "cns": "123456789012345",
+  "sugestaoConduta": "MONITORAR",
+  "iccScore": 85,
+  "justificativa": "Na maior parte dos agendamentos (8 de 10), o paciente conseguiu comparecer..."
+}
+```
+
 #### Processamento
 
 1. Mensagem é recebida pelo `ComparecimentoConsumer`
-2. Convertida para `EventoAgendamentoMessageDomain`
-3. Processada pelo `CalculaComparecimentoUseCase`
-4. ICC é recalculado e paciente atualizado no banco
+2. Convertida para `EventoAgendamentoMessageDomain` via `ComparecimentoConsumerMapper`
+3. Processada pelo `ProcessarComparecimentoUseCase`, que:
+   - Cria paciente novo se não existir
+   - Recalcula ICC via `CalculaComparecimentoUseCase`
+   - Registra histórico via `HistoricoGateway`
+   - Publica sugestão de conduta via `ComparecimentoProducer` (fila `agendamento.rollback`)
 
 ### Retry e Acknowledgment
 
@@ -417,8 +482,8 @@ A aplicação consome eventos de agendamento da fila `comparecimento.queue`.
 # Todos os testes
 mvn test
 
-# Testes com cobertura
-mvn clean test jacoco:report
+# Testes com cobertura e verificação
+mvn verify
 ```
 
 ### Cobertura de Código
@@ -426,6 +491,10 @@ mvn clean test jacoco:report
 O projeto utiliza JaCoCo para medir a cobertura de código. A meta é:
 - **Instruções**: ≥ 80%
 - **Branches**: ≥ 80%
+
+O pacote `com.fiap.comparecimento` está configurado para atingir essas metas. A verificação é executada automaticamente na fase `verify` do Maven.
+
+**Cobertura atual**: ~88% de instruções (meta cumprida)
 
 Relatório gerado em: `target/site/jacoco/index.html`
 
@@ -435,10 +504,31 @@ Os testes seguem a mesma estrutura do código principal:
 
 ```
 src/test/java/com/fiap/comparecimento/
-├── application/usecase/          # Testes de casos de uso
-├── domain/                       # Testes de domínio
-├── entrypoint/                  # Testes de controllers e listeners
-└── infrastructure/              # Testes de infraestrutura
+├── application/usecase/
+│   ├── calcula/comparecimento/implementation/
+│   │   ├── CalculaComparecimentoUseCaseImplTest
+│   │   └── ProcessarComparecimentoUseCaseImplTest
+│   ├── historico/implementation/
+│   │   ├── AdicionaItemHistoricoUseCaseImplTest
+│   │   └── ConsultaHistoricoUseCaseImplTest
+│   ├── pacientes/implementation/
+│   │   └── ConsultarIndiceComparecimentoPacienteUseCaseImplTest
+│   └── relatorios/implementation/
+│       └── ConsultarIndicadoresPorPeriodoUseCaseImplTest
+├── domain/
+│   ├── enuns/                    # StatusConsultaEnumTest, StatusNotificacaoEnumTest
+│   ├── exception/               # PacienteNotFoundExceptionTest, etc.
+│   └── model/                   # HistoricoDomainTest, RelatorioAbsenteismoDomainTest
+├── entrypoint/
+│   ├── controllers/             # PacientesControllerTest, RelatoriosControllerTest
+│   ├── listeners/               # ComparecimentoConsumerTest
+│   └── producer/
+│       ├── ComparecimentoProducerTest
+│       └── mappers/             # ComparecimentoProducerMapperTest
+├── infrastructure/database/implementations/
+│   ├── HistoricoGatewayImplTest
+│   └── PacienteGatewayImplTest
+└── utils/                       # DateTimeUtilsTest
 ```
 
 ### Testcontainers
@@ -778,9 +868,13 @@ O projeto segue os princípios de **Clean Architecture** e **Hexagonal Architect
 **Componentes:**
 - **Gateways (Ports)**: Interfaces que definem contratos para acesso a dados externos
   - `PacienteGateway`: Interface para operações de pacientes
+  - `HistoricoGateway`: Interface para operações de histórico de eventos
   
 - **Use Cases**: Implementam a lógica de casos de uso
   - `CalculaComparecimentoUseCase`: Calcula e atualiza o ICC do paciente
+  - `ProcessarComparecimentoUseCase`: Orquestra o fluxo completo (cálculo, histórico, sugestões)
+  - `AdicionaItemHistoricoUseCase`: Registra eventos no histórico
+  - `ConsultaHistoricoUseCase`: Consulta histórico por agendamento e CNS
   - `ConsultarIndiceComparecimentoPacienteUseCase`: Consulta índice de um paciente
   - `ConsultarIndicadoresPorPeriodoUseCase`: Gera relatórios por período
 
@@ -795,10 +889,11 @@ O projeto segue os princípios de **Clean Architecture** e **Hexagonal Architect
 
 **Componentes:**
 - **Database**: Implementações de persistência
-  - `PacienteGatewayImpl`: Implementação do gateway usando JPA
-  - `PacienteRepository`: Repositório Spring Data JPA
-  - `PacienteEntity`: Entidade JPA
-  - `PacienteEntityMapper`: Mapeamento Entity ↔ Domain
+  - `PacienteGatewayImpl`: Implementação do gateway de pacientes usando JPA
+  - `HistoricoGatewayImpl`: Implementação do gateway de histórico usando JPA
+  - `PacienteRepository`, `HistoricoRepository`: Repositórios Spring Data JPA
+  - `PacienteEntity`, `HistoricoEntity`: Entidades JPA
+  - `PacienteEntityMapper`, `HistoricoEntityMapper`: Mapeamento Entity ↔ Domain
 
 - **Config**: Configurações de infraestrutura
   - `RabbitMQConfig`: Configuração de filas, exchanges e bindings
@@ -824,6 +919,10 @@ O projeto segue os princípios de **Clean Architecture** e **Hexagonal Architect
   - `ComparecimentoConsumer`: Consome eventos de agendamento
   - Mappers: Conversão Message ↔ Domain
 
+- **Producer**: Message Producer (RabbitMQ)
+  - `ComparecimentoProducer`: Publica sugestões de conduta na fila `agendamento.rollback`
+  - `ComparecimentoProducerMapper`: Conversão Domain ↔ EventoComparecimentoMessageDto
+
 **Características:**
 - Depende da camada de aplicação
 - Lida com protocolos de comunicação
@@ -834,31 +933,34 @@ O projeto segue os princípios de **Clean Architecture** e **Hexagonal Architect
 #### Fluxo de Processamento de Eventos
 
 ```
-RabbitMQ Queue
+RabbitMQ Queue (comparecimento.queue)
     ↓
 ComparecimentoConsumer (Entrypoint)
     ↓
-EventoAgendamentoMessageDto → EventoAgendamentoMessageDomain (Mapper)
+EventoAgendamentoMessageDto → EventoAgendamentoMessageDomain (ComparecimentoConsumerMapper)
     ↓
-CalculaComparecimentoUseCase (Application)
+ProcessarComparecimentoUseCase (Application)
     ↓
-PacienteGateway.consultar(cns) (Application Port)
+├─ Paciente não existe? → Criar novo PacienteDomain → PacienteGateway.atualizarInformacoesPaciente
+├─ PacienteGateway.consultar(cns)
     ↓
-PacienteGatewayImpl.consultar(cns) (Infrastructure)
+├─ CalculaComparecimentoUseCase.calculaComparecimento(paciente, evento)
+│   ↓
+│   Cálculo do ICC + Classificação
+│   ↓
+│   PacienteGateway.atualizarInformacoesPaciente(domain)
+│
+├─ AdicionaItemHistoricoUseCase.adicionaItemHistorico(historico)
+│   ↓
+│   HistoricoGateway.adiciona(historicoDomain)
+│   ↓
+│   HistoricoRepository.save(entity)
+│
+└─ ComparecimentoProducer.sendSugestions(eventoComparecimentoDto)
     ↓
-PacienteRepository.findByCns(cns) (Infrastructure)
+    RabbitMQ (agendamento.rollback) → EventoComparecimentoMessageDto
     ↓
-PacienteEntity → PacienteDomain (Mapper)
-    ↓
-Cálculo do ICC (Application Use Case)
-    ↓
-PacienteGateway.atualizarInformacoesPaciente(domain) (Application Port)
-    ↓
-PacienteGatewayImpl.atualizarInformacoesPaciente(domain) (Infrastructure)
-    ↓
-PacienteRepository.save(entity) (Infrastructure)
-    ↓
-MySQL Database
+MySQL Database (tb_paciente, tb_historico)
 ```
 
 #### Fluxo de Consulta REST
@@ -1289,3 +1391,9 @@ Para dúvidas ou problemas, abra uma issue no repositório.
 
 **Versão**: 1.0.0-SNAPSHOT  
 **Última atualização**: Fevereiro 2026
+
+### Changelog Recente
+
+- **Testes**: Cobertura ampliada para ~88% (meta ≥80%). Novos testes: `AdicionaItemHistoricoUseCaseImplTest`, `ConsultaHistoricoUseCaseImplTest`, `ProcessarComparecimentoUseCaseImplTest`, `ComparecimentoProducerTest`, `ComparecimentoProducerMapperTest`, `HistoricoGatewayImplTest`, `HistoricoDomainTest`
+- **JaCoCo**: Correção do pacote de cobertura no `pom.xml` (`com/ms/comparecimento` → `com/fiap/comparecimento`)
+- **Documentação**: Fluxo de processamento atualizado com `ProcessarComparecimentoUseCase`, `HistoricoGateway`, `ComparecimentoProducer` e sugestões de conduta

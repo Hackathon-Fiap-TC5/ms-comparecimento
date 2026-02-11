@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -282,8 +283,4 @@ class CalculaComparecimentoUseCaseImplTest {
         verify(pacienteGateway).atualizarInformacoesPaciente(any(PacienteDomain.class));
     }
 
-    // Helper para facilitar o verify(any)
-    private PacienteDomain any(Class<PacienteDomain> type) {
-        return org.mockito.ArgumentMatchers.any(type);
-    }
 }

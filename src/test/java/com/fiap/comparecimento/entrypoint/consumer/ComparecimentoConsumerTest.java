@@ -1,4 +1,4 @@
-package com.fiap.comparecimento.entrypoint.listeners;
+package com.fiap.comparecimento.entrypoint.consumer;
 
 import com.fiap.comparecimento.application.usecase.calcula.comparecimento.ProcessarComparecimentoUseCase;
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;

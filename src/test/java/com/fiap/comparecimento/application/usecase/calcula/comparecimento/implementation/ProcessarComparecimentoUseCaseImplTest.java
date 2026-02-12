@@ -7,7 +7,7 @@ import com.fiap.comparecimento.domain.enuns.StatusConsultaEnum;
 import com.fiap.comparecimento.domain.enuns.StatusNotificacaoEnum;
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
-import com.fiap.comparecimento.entrypoint.producer.ComparecimentoProducer;
+import com.fiap.comparecimento.infrastructure.producer.ComparecimentoProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

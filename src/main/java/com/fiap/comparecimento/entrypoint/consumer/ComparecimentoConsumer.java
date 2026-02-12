@@ -1,8 +1,8 @@
-package com.fiap.comparecimento.entrypoint.listeners;
+package com.fiap.comparecimento.entrypoint.consumer;
 
 import com.fiap.comparecimento.application.usecase.calcula.comparecimento.ProcessarComparecimentoUseCase;
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
-import com.fiap.comparecimento.entrypoint.listeners.presenter.ComparecimentoConsumerPresenter;
+import com.fiap.comparecimento.entrypoint.consumer.presenter.ComparecimentoConsumerPresenter;
 import com.fiap.comparecimento.infrastructure.config.rabbit.RabbitMQConfig;
 import com.fiap.comparecimentoDomain.gen.model.EventoAgendamentoMessageDto;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

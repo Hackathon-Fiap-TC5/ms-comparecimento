@@ -1,4 +1,4 @@
-package com.fiap.comparecimento.entrypoint.listeners.mappers;
+package com.fiap.comparecimento.entrypoint.consumer.mappers;
 
 import com.fiap.comparecimento.domain.enuns.StatusConsultaEnum;
 import com.fiap.comparecimento.domain.enuns.StatusNotificacaoEnum;

@@ -1,6 +1,7 @@
 package com.fiap.comparecimento.entrypoint.producer.mappers;
 
 import com.fiap.comparecimento.domain.model.EventoComparecimentoMessageDomain;
+import com.fiap.comparecimento.infrastructure.producer.mappers.ComparecimentoProducerMapper;
 import com.fiap.comparecimentoDomain.gen.model.EventoComparecimentoMessageDto;
 import org.junit.jupiter.api.Test;
 

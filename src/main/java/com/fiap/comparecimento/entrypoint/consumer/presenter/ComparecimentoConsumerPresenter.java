@@ -1,7 +1,7 @@
-package com.fiap.comparecimento.entrypoint.listeners.presenter;
+package com.fiap.comparecimento.entrypoint.consumer.presenter;
 
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
-import com.fiap.comparecimento.entrypoint.listeners.mappers.ComparecimentoConsumerMapper;
+import com.fiap.comparecimento.entrypoint.consumer.mappers.ComparecimentoConsumerMapper;
 import com.fiap.comparecimentoDomain.gen.model.EventoAgendamentoMessageDto;
 
 public class ComparecimentoConsumerPresenter {

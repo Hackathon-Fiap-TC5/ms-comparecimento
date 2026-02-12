@@ -10,8 +10,8 @@ import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 import com.fiap.comparecimento.domain.model.EventoComparecimentoMessageDomain;
 import com.fiap.comparecimento.domain.model.HistoricoDomain;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
-import com.fiap.comparecimento.entrypoint.producer.ComparecimentoProducer;
-import com.fiap.comparecimento.entrypoint.producer.mappers.ComparecimentoProducerMapper;
+import com.fiap.comparecimento.infrastructure.producer.ComparecimentoProducer;
+import com.fiap.comparecimento.infrastructure.producer.mappers.ComparecimentoProducerMapper;
 import com.fiap.comparecimentoDomain.gen.model.EventoComparecimentoMessageDto;
 
 import java.time.OffsetDateTime;

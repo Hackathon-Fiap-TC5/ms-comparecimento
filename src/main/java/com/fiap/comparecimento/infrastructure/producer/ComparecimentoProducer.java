@@ -1,4 +1,4 @@
-package com.fiap.comparecimento.entrypoint.producer;
+package com.fiap.comparecimento.infrastructure.producer;
 
 import com.fiap.comparecimento.infrastructure.config.rabbit.RabbitMQConfig;
 import com.fiap.comparecimentoDomain.gen.model.EventoComparecimentoMessageDto;

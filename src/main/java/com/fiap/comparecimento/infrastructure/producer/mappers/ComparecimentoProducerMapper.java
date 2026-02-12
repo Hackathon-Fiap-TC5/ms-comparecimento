@@ -1,4 +1,4 @@
-package com.fiap.comparecimento.entrypoint.producer.mappers;
+package com.fiap.comparecimento.infrastructure.producer.mappers;
 
 import com.fiap.comparecimento.domain.model.EventoComparecimentoMessageDomain;
 import com.fiap.comparecimentoDomain.gen.model.EventoComparecimentoMessageDto;

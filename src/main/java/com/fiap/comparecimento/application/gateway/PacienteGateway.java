@@ -10,9 +10,9 @@ public interface PacienteGateway {
 
     PacienteDomain consultar(String cns);
 
-    Optional<PacienteDomain> buscarPorCns(String cns);
+    Optional<PacienteDomain> verificaExistenciaPaciente(String cns);
 
-    void atualizarInformacoesPaciente(PacienteDomain domain);
+    void criaOuAtualizarInformacoesPaciente(PacienteDomain domain);
 
     RelatorioAbsenteismoDomain consultarRelatorioAbsenteismo(OffsetDateTime dataInicioOffset, OffsetDateTime dataFimOffset);
 }

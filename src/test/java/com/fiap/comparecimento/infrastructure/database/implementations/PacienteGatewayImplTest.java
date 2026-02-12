@@ -93,12 +93,12 @@ class PacienteGatewayImplTest {
     }
 
     @Test
-    void deveAtualizarInformacoesPaciente() {
+    void deveCriaOuAtualizarInformacoesPaciente() {
         // Given
         when(pacienteRepository.save(any(PacienteEntity.class))).thenReturn(pacienteEntity);
 
         // When
-        gateway.atualizarInformacoesPaciente(pacienteDomain);
+        gateway.criaOuAtualizarInformacoesPaciente(pacienteDomain);
 
         // Then
         verify(pacienteRepository, times(1)).save(any(PacienteEntity.class));

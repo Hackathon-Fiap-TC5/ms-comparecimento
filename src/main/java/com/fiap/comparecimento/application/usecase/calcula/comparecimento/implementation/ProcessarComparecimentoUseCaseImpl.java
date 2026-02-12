@@ -36,13 +36,13 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
     @Override
     public void processaComparecimento(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
 
-        if(pacienteGateway.buscarPorCns(eventoAgendamentoMessageDomain.getCns()).isEmpty()){
+        if(pacienteGateway.verificaExistenciaPaciente(eventoAgendamentoMessageDomain.getCns()).isEmpty()){
             PacienteDomain pacienteDomain = new PacienteDomain(eventoAgendamentoMessageDomain.getCns(), 100,
                     ClassificacaoPacienteEnum.MUITO_CONFIAVEL.toString(),
                     0,0,0,0,0 ,
                     OffsetDateTime.now()
             );
-            pacienteGateway.atualizarInformacoesPaciente(pacienteDomain);
+            pacienteGateway.criaOuAtualizarInformacoesPaciente(pacienteDomain);
         }
 
         PacienteDomain pacienteDomain = pacienteGateway.consultar(eventoAgendamentoMessageDomain.getCns());

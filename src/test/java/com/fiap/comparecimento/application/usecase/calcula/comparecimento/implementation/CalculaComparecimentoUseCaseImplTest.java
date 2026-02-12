@@ -63,7 +63,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
 
         assertEquals(14, captor.getValue().getTotalAgendamentos());
     }
@@ -77,7 +77,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
 
         // Se o teste falha aqui dizendo que recebeu 1, verifique se sua UseCase não está dando 'new' no paciente
         assertEquals(11, captor.getValue().getTotalComparecimentos());
@@ -92,7 +92,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
         assertEquals(3, captor.getValue().getTotalFaltas());
     }
 
@@ -105,7 +105,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
         assertEquals(9, captor.getValue().getTotalConfirmacoes());
     }
 
@@ -118,7 +118,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
         assertEquals(2, captor.getValue().getTotalCancelamentos());
     }
 
@@ -135,7 +135,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
         assertTrue(captor.getValue().getIcc() >= 90);
     }
 
@@ -151,7 +151,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
         assertNotNull(captor.getValue().getClassificacao());
     }
 
@@ -167,7 +167,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
         assertNotNull(captor.getValue().getIcc());
     }
 
@@ -179,7 +179,7 @@ class CalculaComparecimentoUseCaseImplTest {
 
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
-        verify(pacienteGateway, times(1)).atualizarInformacoesPaciente(any(PacienteDomain.class));
+        verify(pacienteGateway, times(1)).criaOuAtualizarInformacoesPaciente(any(PacienteDomain.class));
     }
 
     @Test
@@ -190,7 +190,7 @@ class CalculaComparecimentoUseCaseImplTest {
 
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
-        verify(pacienteGateway).atualizarInformacoesPaciente(any(PacienteDomain.class));
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(any(PacienteDomain.class));
     }
 
     @Test
@@ -201,7 +201,7 @@ class CalculaComparecimentoUseCaseImplTest {
 
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
-        verify(pacienteGateway).atualizarInformacoesPaciente(any(PacienteDomain.class));
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(any(PacienteDomain.class));
     }
 
     @Test
@@ -212,7 +212,7 @@ class CalculaComparecimentoUseCaseImplTest {
 
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
-        verify(pacienteGateway).atualizarInformacoesPaciente(any(PacienteDomain.class));
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(any(PacienteDomain.class));
     }
 
     @Test
@@ -223,7 +223,7 @@ class CalculaComparecimentoUseCaseImplTest {
 
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
-        verify(pacienteGateway).atualizarInformacoesPaciente(any(PacienteDomain.class));
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(any(PacienteDomain.class));
     }
 
     @Test
@@ -244,7 +244,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(novoPaciente, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
 
         // Verifica se incrementou de 0 para 1
         assertEquals(1, captor.getValue().getTotalAgendamentos());
@@ -259,7 +259,7 @@ class CalculaComparecimentoUseCaseImplTest {
         useCase.calculaComparecimento(pacienteDomain, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(captor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
         assertNotNull(captor.getValue().getUltimaAtualizacao());
     }
 
@@ -280,7 +280,7 @@ class CalculaComparecimentoUseCaseImplTest {
 
         useCase.calculaComparecimento(zerado, eventoDomain);
 
-        verify(pacienteGateway).atualizarInformacoesPaciente(any(PacienteDomain.class));
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(any(PacienteDomain.class));
     }
 
 }

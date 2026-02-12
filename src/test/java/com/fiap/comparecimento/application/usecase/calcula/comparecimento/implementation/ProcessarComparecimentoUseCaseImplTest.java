@@ -60,7 +60,7 @@ class ProcessarComparecimentoUseCaseImplTest {
 
     @Test
     void deveProcessarComparecimentoQuandoPacienteExiste() {
-        when(pacienteGateway.buscarPorCns("123456789012345")).thenReturn(Optional.of(pacienteDomain));
+        when(pacienteGateway.verificaExistenciaPaciente("123456789012345")).thenReturn(Optional.of(pacienteDomain));
         when(pacienteGateway.consultar("123456789012345")).thenReturn(pacienteDomain);
 
         useCase.processaComparecimento(evento);
@@ -72,13 +72,13 @@ class ProcessarComparecimentoUseCaseImplTest {
 
     @Test
     void deveCriarPacienteNovoQuandoNaoExiste() {
-        when(pacienteGateway.buscarPorCns("123456789012345")).thenReturn(Optional.empty());
+        when(pacienteGateway.verificaExistenciaPaciente("123456789012345")).thenReturn(Optional.empty());
         when(pacienteGateway.consultar("123456789012345")).thenReturn(pacienteDomain);
 
         useCase.processaComparecimento(evento);
 
         ArgumentCaptor<PacienteDomain> pacienteCaptor = ArgumentCaptor.forClass(PacienteDomain.class);
-        verify(pacienteGateway).atualizarInformacoesPaciente(pacienteCaptor.capture());
+        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(pacienteCaptor.capture());
         PacienteDomain novoPaciente = pacienteCaptor.getValue();
         assertEquals("123456789012345", novoPaciente.getCns());
         assertEquals(100, novoPaciente.getIcc());
@@ -87,7 +87,7 @@ class ProcessarComparecimentoUseCaseImplTest {
 
     @Test
     void deveAdicionarHistoricoComDadosCorretos() {
-        when(pacienteGateway.buscarPorCns("123456789012345")).thenReturn(Optional.of(pacienteDomain));
+        when(pacienteGateway.verificaExistenciaPaciente("123456789012345")).thenReturn(Optional.of(pacienteDomain));
         when(pacienteGateway.consultar("123456789012345")).thenReturn(pacienteDomain);
 
         useCase.processaComparecimento(evento);

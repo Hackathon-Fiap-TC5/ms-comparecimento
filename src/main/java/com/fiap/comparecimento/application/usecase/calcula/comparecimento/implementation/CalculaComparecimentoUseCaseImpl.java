@@ -53,7 +53,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         pacienteDomain.setTotalCancelamentos(totalCancelamentos);
         pacienteDomain.setTotalAgendamentos(totalAgendamentos);
         pacienteDomain.setUltimaAtualizacao(OffsetDateTime.now());
-        pacienteGateway.atualizarInformacoesPaciente(pacienteDomain);
+        pacienteGateway.criaOuAtualizarInformacoesPaciente(pacienteDomain);
     }
 
     /*

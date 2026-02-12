@@ -29,13 +29,13 @@ public class PacienteGatewayImpl implements PacienteGateway {
     }
 
     @Override
-    public Optional<PacienteDomain> buscarPorCns(String cns) {
+    public Optional<PacienteDomain> verificaExistenciaPaciente(String cns) {
         return pacienteRepository.getByCns(cns)
                 .map(PacienteEntityMapper.INSTANCE::toPacienteDomain);
     }
 
     @Override
-    public void atualizarInformacoesPaciente(PacienteDomain domain) {
+    public void criaOuAtualizarInformacoesPaciente(PacienteDomain domain) {
         PacienteEntity entity = PacienteEntityMapper.INSTANCE.toPacienteEntity(domain);
         pacienteRepository.save(entity);
     }

@@ -1,0 +1,107 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: ms-comparecimento
+  namespace: '780675609467'
+  selfLink: /apis/serving.knative.dev/v1/namespaces/780675609467/services/ms-comparecimento
+  uid: b99a8217-89f0-4d7d-8c4f-90848c6ee56d
+  resourceVersion: AAZKlxuEPwE
+  generation: 43
+  creationTimestamp: '2026-02-07T23:37:14.597237Z'
+  labels:
+    commit-sha: 30c85f5b014c0bbec1b3300a3540f4a45a2282fa
+    force-restart: v6
+    gcb-build-id: a55550cc-a270-4704-9ce9-52e387c0664f
+    gcb-trigger-id: 4742588c-e333-49a3-b6ca-759c423f6b97
+    gcb-trigger-region: global
+    managed-by: gcp-cloud-build-deploy-cloud-run
+    cloud.googleapis.com/location: us-central1
+  annotations:
+    serving.knative.dev/creator: dpcamargo@gmail.com
+    serving.knative.dev/lastModifier: 780675609467-compute@developer.gserviceaccount.com
+    run.googleapis.com/client-name: gcloud
+    run.googleapis.com/client-version: 556.0.0
+    run.googleapis.com/operation-id: 275cded3-4e4b-4d73-84ec-8bdd4eff2af9
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/invoker-iam-disabled: 'true'
+    run.googleapis.com/maxScale: '1'
+    run.googleapis.com/urls: '["https://ms-comparecimento-780675609467.us-central1.run.app","https://ms-comparecimento-p72ngdpwvq-uc.a.run.app"]'
+spec:
+  template:
+    metadata:
+      labels:
+        client.knative.dev/nonce: cvirrrwkcw
+        commit-sha: 30c85f5b014c0bbec1b3300a3540f4a45a2282fa
+        force-restart: v6
+        gcb-build-id: a55550cc-a270-4704-9ce9-52e387c0664f
+        gcb-trigger-id: 4742588c-e333-49a3-b6ca-759c423f6b97
+        gcb-trigger-region: global
+        managed-by: gcp-cloud-build-deploy-cloud-run
+        run.googleapis.com/startupProbeType: Default
+      annotations:
+        autoscaling.knative.dev/maxScale: '20'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 556.0.0
+        run.googleapis.com/cloudsql-instances: fiap-474820:us-central1:ms-comparecimento
+        run.googleapis.com/startup-cpu-boost: 'true'
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      serviceAccountName: 780675609467-compute@developer.gserviceaccount.com
+      containers:
+        - name: placeholder-1
+          image: us-central1-docker.pkg.dev/fiap-474820/cloud-run-source-deploy/ms-comparecimento/ms-comparecimento:30c85f5b014c0bbec1b3300a3540f4a45a2282fa
+          ports:
+            - name: http1
+              containerPort: 8080
+          env:
+            - name: DB_USERNAME
+              value: comparecimento
+            - name: RABBIT_HOST
+              value: 34.123.21.86
+            - name: RABBIT_PORT
+              value: '5672'
+            - name: RABBIT_USERNAME
+              value: dev
+            - name: RABBIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: latest
+                  name: RABBIT_PASSWORD
+            - name: DB_PASSWORD
+              value: Compar2026#
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          startupProbe:
+            timeoutSeconds: 240
+            periodSeconds: 240
+            failureThreshold: 1
+            tcpSocket:
+              port: 8080
+  traffic:
+    - percent: 100
+      latestRevision: true
+status:
+  observedGeneration: 43
+  conditions:
+    - type: Ready
+      status: 'True'
+      lastTransitionTime: '2026-02-12T02:18:42.432769Z'
+    - type: ConfigurationsReady
+      status: 'True'
+      lastTransitionTime: '2026-02-12T02:18:14.507874Z'
+    - type: RoutesReady
+      status: 'True'
+      lastTransitionTime: '2026-02-12T02:18:42.399468Z'
+  latestReadyRevisionName: ms-comparecimento-00040-jq9
+  latestCreatedRevisionName: ms-comparecimento-00040-jq9
+  traffic:
+    - revisionName: ms-comparecimento-00040-jq9
+      percent: 100
+      latestRevision: true
+  url: https://ms-comparecimento-p72ngdpwvq-uc.a.run.app
+  address:
+    url: https://ms-comparecimento-p72ngdpwvq-uc.a.run.app

@@ -14,18 +14,19 @@ public interface PacienteRepository extends JpaRepository<PacienteEntity, Long> 
     Optional<PacienteEntity> getByCns(String cns);
 
     @Query(value = """
-            SELECT
-                COUNT(*) AS total_pessoas,
-                COALESCE(AVG(icc), 0) AS icc_medio,
-                COALESCE(SUM(total_agendamentos), 0) AS total_consultas,
-                COALESCE(SUM(total_faltas), 0) AS total_faltas,
-                (CAST(COALESCE(SUM(total_faltas), 0) AS DECIMAL(15,4)) /
-                  NULLIF(CAST(COALESCE(SUM(total_agendamentos), 0) AS DECIMAL(15,4)), 0)
-                ) * 100, 0) AS taxa_absenteismo
-            FROM tb_paciente
-              WHERE ultima_atualizacao >= :dataInicio
-              AND ultima_atualizacao <  :dataFim;                                  
-        """, nativeQuery = true)
+        SELECT
+            COUNT(*) AS total_pessoas,
+            COALESCE(AVG(icc), 0) AS icc_medio,
+            COALESCE(SUM(total_agendamentos), 0) AS total_consultas,
+            COALESCE(SUM(total_faltas), 0) AS total_faltas,
+            COALESCE(
+                (SUM(total_faltas) * 1.0 / NULLIF(SUM(total_agendamentos), 0)) * 100,
+                0
+            ) AS taxa_absenteismo
+        FROM tb_paciente
+        WHERE ultima_atualizacao >= :dataInicio
+          AND ultima_atualizacao <  :dataFim
+    """, nativeQuery = true)
     RelatorioAbsenteismoProjection consultarRelatorioAbsenteismo(
             @Param("dataInicio") OffsetDateTime dataInicio,
             @Param("dataFim") OffsetDateTime dataFim

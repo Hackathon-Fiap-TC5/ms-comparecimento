@@ -2,7 +2,7 @@
 
 Microserviço responsável por calcular e disponibilizar indicadores de comparecimento e absenteísmo de pacientes do Sistema Único de Saúde (SUS).
 
-## 📋 Índice 
+## 📋 Índice  
 
 - [Visão Geral](#visão-geral)
 - [Arquitetura](#arquitetura)

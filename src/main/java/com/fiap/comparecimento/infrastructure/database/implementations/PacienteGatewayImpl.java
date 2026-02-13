@@ -1,7 +1,6 @@
 package com.fiap.comparecimento.infrastructure.database.implementations;
 
 import com.fiap.comparecimento.application.gateway.PacienteGateway;
-import com.fiap.comparecimento.domain.exception.PacienteNotFoundException;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
 import com.fiap.comparecimento.domain.model.PeriodoDomain;
 import com.fiap.comparecimento.domain.model.RelatorioAbsenteismoDomain;
@@ -20,13 +19,13 @@ import java.util.Optional;
 public class PacienteGatewayImpl implements PacienteGateway {
 
     private final PacienteRepository pacienteRepository;
-    private static Integer ICC_CONFIAVEL = 75;
 
     @Override
-    public PacienteDomain consultar(String cns) {
+    public Optional<PacienteDomain> consultar(String cns) {
         return pacienteRepository.getByCns(cns)
-                .map(PacienteEntityMapper.INSTANCE::toPacienteDomain)
-                .orElseThrow(PacienteNotFoundException::new);
+                .flatMap(entity ->
+                        Optional.ofNullable(PacienteEntityMapper.INSTANCE.toPacienteDomain(entity))
+                );
     }
 
     @Override
@@ -43,7 +42,7 @@ public class PacienteGatewayImpl implements PacienteGateway {
 
     @Override
     public PacienteDomain consultaPacienteFilaViva() {
-        PacienteEntity entity = pacienteRepository.findTopByIccGreaterThanOrderByIccDesc(ICC_CONFIAVEL);
+        PacienteEntity entity = pacienteRepository.findTopByIccGreaterThanOrderByIccDesc(75);
         return PacienteEntityMapper.INSTANCE.toPacienteDomain(entity);
     }
 

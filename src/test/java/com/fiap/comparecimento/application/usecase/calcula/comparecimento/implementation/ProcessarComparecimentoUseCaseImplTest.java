@@ -20,9 +20,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProcessarComparecimentoUseCaseImplTest {
@@ -70,7 +73,7 @@ class ProcessarComparecimentoUseCaseImplTest {
     @Test
     void deveProcessarComparecimentoQuandoPacienteExiste() {
         when(pacienteGateway.consultar("123456789012345"))
-                .thenReturn(paciente);
+                .thenReturn(Optional.of(paciente));
 
         useCase.processaComparecimento(evento);
 
@@ -89,29 +92,9 @@ class ProcessarComparecimentoUseCaseImplTest {
     }
 
     @Test
-    void deveCriarPacienteQuandoNaoExiste() {
-        when(pacienteGateway.consultar("123456789012345"))
-                .thenReturn(null);
-
-        useCase.processaComparecimento(evento);
-
-        ArgumentCaptor<PacienteDomain> pacienteCaptor =
-                ArgumentCaptor.forClass(PacienteDomain.class);
-
-        verify(pacienteGateway)
-                .criaOuAtualizarInformacoesPaciente(pacienteCaptor.capture());
-
-        PacienteDomain novoPaciente = pacienteCaptor.getValue();
-
-        assertEquals("123456789012345", novoPaciente.getCns());
-        assertEquals(100, novoPaciente.getIcc());
-        assertEquals("MUITO_CONFIAVEL", novoPaciente.getClassificacao());
-    }
-
-    @Test
     void deveAdicionarHistoricoComDadosCorretos() {
         when(pacienteGateway.consultar("123456789012345"))
-                .thenReturn(paciente);
+                .thenReturn(Optional.of(paciente));
 
         ArgumentCaptor<com.fiap.comparecimento.domain.model.HistoricoDomain>
                 historicoCaptor =

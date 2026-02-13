@@ -20,6 +20,7 @@ import java.util.Optional;
 public class PacienteGatewayImpl implements PacienteGateway {
 
     private final PacienteRepository pacienteRepository;
+    private static Integer ICC_CONFIAVEL = 75;
 
     @Override
     public PacienteDomain consultar(String cns) {
@@ -44,6 +45,12 @@ public class PacienteGatewayImpl implements PacienteGateway {
     public RelatorioAbsenteismoDomain consultarRelatorioAbsenteismo(OffsetDateTime dataInicio, OffsetDateTime dataFim) {
         RelatorioAbsenteismoProjection projection = pacienteRepository.consultarRelatorioAbsenteismo(dataInicio, dataFim);
         return buildRelatorioAbsenteismoDomain(dataInicio, dataFim, projection);
+    }
+
+    @Override
+    public PacienteDomain consultaPacienteFilaViva() {
+        PacienteEntity entity = pacienteRepository.findTopByIccGreaterThanOrderByIccDesc(ICC_CONFIAVEL);
+        return PacienteEntityMapper.INSTANCE.toPacienteDomain(entity);
     }
 
     private static RelatorioAbsenteismoDomain buildRelatorioAbsenteismoDomain(OffsetDateTime dataInicio, OffsetDateTime dataFim, RelatorioAbsenteismoProjection p) {

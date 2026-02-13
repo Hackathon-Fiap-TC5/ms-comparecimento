@@ -1,13 +1,16 @@
 package com.fiap.comparecimento.application.usecase.calcula.comparecimento.implementation;
 
+import com.fiap.comparecimento.application.gateway.FilaVivaGateway;
 import com.fiap.comparecimento.application.gateway.PacienteGateway;
 import com.fiap.comparecimento.application.usecase.calcula.comparecimento.CalculaComparecimentoUseCase;
 import com.fiap.comparecimento.application.usecase.calcula.comparecimento.ProcessarComparecimentoUseCase;
 import com.fiap.comparecimento.application.usecase.historico.AdicionaItemHistoricoUseCase;
 import com.fiap.comparecimento.domain.enuns.ClassificacaoPacienteEnum;
+import com.fiap.comparecimento.domain.enuns.StatusConsultaEnum;
 import com.fiap.comparecimento.domain.enuns.SugestaoCondutaEnum;
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 import com.fiap.comparecimento.domain.model.EventoComparecimentoMessageDomain;
+import com.fiap.comparecimento.domain.model.FilaVivaDomain;
 import com.fiap.comparecimento.domain.model.HistoricoDomain;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
 import com.fiap.comparecimento.infrastructure.producer.ComparecimentoProducer;
@@ -22,19 +25,25 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
     private final AdicionaItemHistoricoUseCase adicionaItemHistoricoUseCase;
     private final CalculaComparecimentoUseCase calculaComparecimentoUseCase;
     private final ComparecimentoProducer comparecimentoProducer;
+    private final FilaVivaGateway filaVivaGateway;
+
+    private final String JUSTIFICATIVA = "Paciente confiável, elegível para reaproveitamento de vaga";
 
     public ProcessarComparecimentoUseCaseImpl(PacienteGateway pacienteGateway,
                                               AdicionaItemHistoricoUseCase adicionaItemHistoricoUseCase,
                                               CalculaComparecimentoUseCase calculaComparecimentoUseCase,
-                                              ComparecimentoProducer comparecimentoProducer) {
+                                              ComparecimentoProducer comparecimentoProducer,
+                                              FilaVivaGateway filaVivaGateway) {
         this.pacienteGateway = pacienteGateway;
         this.adicionaItemHistoricoUseCase = adicionaItemHistoricoUseCase;
         this.calculaComparecimentoUseCase = calculaComparecimentoUseCase;
         this.comparecimentoProducer = comparecimentoProducer;
+        this.filaVivaGateway = filaVivaGateway;
     }
 
     @Override
     public void processaComparecimento(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
+        executarPacienteFilaVia(eventoAgendamentoMessageDomain);
 
         if(pacienteGateway.verificaExistenciaPaciente(eventoAgendamentoMessageDomain.getCns()).isEmpty()){
             PacienteDomain pacienteDomain = new PacienteDomain(eventoAgendamentoMessageDomain.getCns(), 100,
@@ -49,6 +58,22 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
         calculaComparecimentoUseCase.calculaComparecimento(pacienteDomain, eventoAgendamentoMessageDomain);
         adicionaItemHistoricoUseCase.adicionaItemHistorico(buildHistorico(eventoAgendamentoMessageDomain));
         comparecimentoProducer.sendSugestions(toBuildPayloadComparecimento(eventoAgendamentoMessageDomain.getIdAgendamento(), pacienteDomain.getCns()));
+    }
+
+    private void executarPacienteFilaVia(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
+        if(eventoAgendamentoMessageDomain.getStatusConsulta().equals(StatusConsultaEnum.CANCELADO) ||
+                eventoAgendamentoMessageDomain.getStatusConsulta().equals(StatusConsultaEnum.FALTA)) {
+
+            PacienteDomain domain = pacienteGateway.consultaPacienteFilaViva();
+
+            FilaVivaDomain filaVivaDomain = new FilaVivaDomain();
+            filaVivaDomain.setIdAgendamento(eventoAgendamentoMessageDomain.getIdAgendamento());
+            filaVivaDomain.setJustificativa(JUSTIFICATIVA);
+            filaVivaDomain.setPerfilPaciente(ClassificacaoPacienteEnum.CONFIAVEL.getDescricao());
+            filaVivaDomain.setSugestaoConduta(SugestaoCondutaEnum.REALOCACAO_IMEDIATA.getDescricao());
+            filaVivaDomain.setCns(domain.getCns());
+            filaVivaGateway.publicarFilaViva(filaVivaDomain);
+        }
     }
 
     private EventoComparecimentoMessageDto toBuildPayloadComparecimento(Long idAgendamento, String cns) {

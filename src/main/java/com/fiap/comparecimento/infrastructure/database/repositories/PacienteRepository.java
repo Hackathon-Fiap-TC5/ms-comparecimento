@@ -31,4 +31,6 @@ public interface PacienteRepository extends JpaRepository<PacienteEntity, Long> 
             @Param("dataInicio") OffsetDateTime dataInicio,
             @Param("dataFim") OffsetDateTime dataFim
     );
+
+    PacienteEntity findTopByIccGreaterThanOrderByIccDesc(Integer icc);
 }

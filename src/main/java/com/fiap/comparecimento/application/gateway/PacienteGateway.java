@@ -15,4 +15,6 @@ public interface PacienteGateway {
     void criaOuAtualizarInformacoesPaciente(PacienteDomain domain);
 
     RelatorioAbsenteismoDomain consultarRelatorioAbsenteismo(OffsetDateTime dataInicioOffset, OffsetDateTime dataFimOffset);
+
+    PacienteDomain consultaPacienteFilaViva();
 }

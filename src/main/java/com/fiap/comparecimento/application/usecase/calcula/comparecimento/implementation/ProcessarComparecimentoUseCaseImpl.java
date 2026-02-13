@@ -1,16 +1,14 @@
 package com.fiap.comparecimento.application.usecase.calcula.comparecimento.implementation;
 
-import com.fiap.comparecimento.application.gateway.FilaVivaGateway;
 import com.fiap.comparecimento.application.gateway.PacienteGateway;
 import com.fiap.comparecimento.application.usecase.calcula.comparecimento.CalculaComparecimentoUseCase;
 import com.fiap.comparecimento.application.usecase.calcula.comparecimento.ProcessarComparecimentoUseCase;
 import com.fiap.comparecimento.application.usecase.historico.AdicionaItemHistoricoUseCase;
+import com.fiap.comparecimento.domain.domainService.FilaVivaAsyncDomainService;
 import com.fiap.comparecimento.domain.enuns.ClassificacaoPacienteEnum;
-import com.fiap.comparecimento.domain.enuns.StatusConsultaEnum;
 import com.fiap.comparecimento.domain.enuns.SugestaoCondutaEnum;
 import com.fiap.comparecimento.domain.model.EventoAgendamentoMessageDomain;
 import com.fiap.comparecimento.domain.model.EventoComparecimentoMessageDomain;
-import com.fiap.comparecimento.domain.model.FilaVivaDomain;
 import com.fiap.comparecimento.domain.model.HistoricoDomain;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
 import com.fiap.comparecimento.infrastructure.producer.ComparecimentoProducer;
@@ -25,81 +23,105 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
     private final AdicionaItemHistoricoUseCase adicionaItemHistoricoUseCase;
     private final CalculaComparecimentoUseCase calculaComparecimentoUseCase;
     private final ComparecimentoProducer comparecimentoProducer;
-    private final FilaVivaGateway filaVivaGateway;
+    private final FilaVivaAsyncDomainService filaVivaAsyncDomainService;
 
-    private final String JUSTIFICATIVA = "Paciente confiável, elegível para reaproveitamento de vaga";
-
-    public ProcessarComparecimentoUseCaseImpl(PacienteGateway pacienteGateway,
-                                              AdicionaItemHistoricoUseCase adicionaItemHistoricoUseCase,
-                                              CalculaComparecimentoUseCase calculaComparecimentoUseCase,
-                                              ComparecimentoProducer comparecimentoProducer,
-                                              FilaVivaGateway filaVivaGateway) {
+    public ProcessarComparecimentoUseCaseImpl(
+            PacienteGateway pacienteGateway,
+            AdicionaItemHistoricoUseCase adicionaItemHistoricoUseCase,
+            CalculaComparecimentoUseCase calculaComparecimentoUseCase,
+            ComparecimentoProducer comparecimentoProducer,
+            FilaVivaAsyncDomainService filaVivaAsyncDomainService
+    ) {
         this.pacienteGateway = pacienteGateway;
         this.adicionaItemHistoricoUseCase = adicionaItemHistoricoUseCase;
         this.calculaComparecimentoUseCase = calculaComparecimentoUseCase;
         this.comparecimentoProducer = comparecimentoProducer;
-        this.filaVivaGateway = filaVivaGateway;
+        this.filaVivaAsyncDomainService = filaVivaAsyncDomainService;
     }
 
     @Override
-    public void processaComparecimento(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
-        executarPacienteFilaVia(eventoAgendamentoMessageDomain);
+    public void processaComparecimento(EventoAgendamentoMessageDomain evento) {
 
-        if(pacienteGateway.verificaExistenciaPaciente(eventoAgendamentoMessageDomain.getCns()).isEmpty()){
-            PacienteDomain pacienteDomain = new PacienteDomain(eventoAgendamentoMessageDomain.getCns(), 100,
-                    ClassificacaoPacienteEnum.MUITO_CONFIAVEL.toString(),
-                    0,0,0,0,0 ,
-                    OffsetDateTime.now()
-            );
-            pacienteGateway.criaOuAtualizarInformacoesPaciente(pacienteDomain);
+        filaVivaAsyncDomainService.processarFilaViva(evento);
+
+        PacienteDomain paciente = obterOuCriarPaciente(evento);
+
+        processarComparecimentoPaciente(paciente, evento);
+    }
+
+    private PacienteDomain obterOuCriarPaciente(EventoAgendamentoMessageDomain evento) {
+
+        PacienteDomain paciente = pacienteGateway.consultar(evento.getCns());
+
+        if (paciente == null) {
+            paciente = criarPacienteInicial(evento);
+            pacienteGateway.criaOuAtualizarInformacoesPaciente(paciente);
         }
 
-        PacienteDomain pacienteDomain = pacienteGateway.consultar(eventoAgendamentoMessageDomain.getCns());
-        calculaComparecimentoUseCase.calculaComparecimento(pacienteDomain, eventoAgendamentoMessageDomain);
-        adicionaItemHistoricoUseCase.adicionaItemHistorico(buildHistorico(eventoAgendamentoMessageDomain));
-        comparecimentoProducer.sendSugestions(toBuildPayloadComparecimento(eventoAgendamentoMessageDomain.getIdAgendamento(), pacienteDomain.getCns()));
+        return paciente;
     }
 
-    private void executarPacienteFilaVia(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain) {
-        if(eventoAgendamentoMessageDomain.getStatusConsulta().equals(StatusConsultaEnum.CANCELADO) ||
-                eventoAgendamentoMessageDomain.getStatusConsulta().equals(StatusConsultaEnum.FALTA)) {
+    private void processarComparecimentoPaciente(
+            PacienteDomain paciente,
+            EventoAgendamentoMessageDomain evento
+    ) {
 
-            PacienteDomain domain = pacienteGateway.consultaPacienteFilaViva();
+        calculaComparecimentoUseCase.calculaComparecimento(paciente, evento);
 
-            FilaVivaDomain filaVivaDomain = new FilaVivaDomain();
-            filaVivaDomain.setIdAgendamento(eventoAgendamentoMessageDomain.getIdAgendamento());
-            filaVivaDomain.setJustificativa(JUSTIFICATIVA);
-            filaVivaDomain.setPerfilPaciente(ClassificacaoPacienteEnum.CONFIAVEL.getDescricao());
-            filaVivaDomain.setSugestaoConduta(SugestaoCondutaEnum.REALOCACAO_IMEDIATA.getDescricao());
-            filaVivaDomain.setCns(domain.getCns());
-            filaVivaGateway.publicarFilaViva(filaVivaDomain);
-        }
+        adicionaItemHistoricoUseCase.adicionaItemHistorico(
+                buildHistorico(evento)
+        );
+
+        comparecimentoProducer.sendSugestions(
+                buildComparecimentoPayload(evento.getIdAgendamento(), paciente)
+        );
     }
 
-    private EventoComparecimentoMessageDto toBuildPayloadComparecimento(Long idAgendamento, String cns) {
-        PacienteDomain paciente = pacienteGateway.consultar(cns);
-        ClassificacaoPacienteEnum classificacaoPaciente = ClassificacaoPacienteEnum.valueOf(paciente.getClassificacao());
-
-        SugestaoCondutaEnum sugestaoConduta = sugerirConduta(classificacaoPaciente);
-
-        EventoComparecimentoMessageDomain evento = new EventoComparecimentoMessageDomain(idAgendamento, cns, sugestaoConduta.name(),
-                paciente.getIcc(), justificativaConduta(paciente));
-
-        return ComparecimentoProducerMapper.INSTANCE.toEventoComparecimentoMessageDto(evento);
+    private PacienteDomain criarPacienteInicial(EventoAgendamentoMessageDomain evento) {
+        return new PacienteDomain(
+                evento.getCns(),
+                100,
+                ClassificacaoPacienteEnum.MUITO_CONFIAVEL.name(),
+                0, 0, 0, 0, 0,
+                OffsetDateTime.now()
+        );
     }
 
+    private EventoComparecimentoMessageDto buildComparecimentoPayload(
+            Long idAgendamento,
+            PacienteDomain paciente
+    ) {
+
+        ClassificacaoPacienteEnum classificacao =
+                ClassificacaoPacienteEnum.valueOf(paciente.getClassificacao());
+
+        SugestaoCondutaEnum sugestaoConduta = sugerirConduta(classificacao);
+
+        EventoComparecimentoMessageDomain evento =
+                new EventoComparecimentoMessageDomain(
+                        idAgendamento,
+                        paciente.getCns(),
+                        sugestaoConduta.name(),
+                        paciente.getIcc(),
+                        justificativaConduta(paciente)
+                );
+
+        return ComparecimentoProducerMapper.INSTANCE
+                .toEventoComparecimentoMessageDto(evento);
+    }
 
     private SugestaoCondutaEnum sugerirConduta(ClassificacaoPacienteEnum classificacao) {
         return switch (classificacao) {
             case MUITO_CONFIAVEL -> SugestaoCondutaEnum.MANTER_FLUXO;
             case CONFIAVEL, COMPARECIMENTO_PROVAVEL -> SugestaoCondutaEnum.MONITORAR;
             case COMPARECIMENTO_INCERTO -> SugestaoCondutaEnum.CONFIRMAR_AGENDAMENTO;
-            case BAIXA_PROBABILIDADE_DE_COMPARECIMENTO -> SugestaoCondutaEnum.REAGENDAMENTO_PREVENTIVO;
-            case PROVAVEL_NAO_COMPARECIMENTO, CRITICO, REALOCACAO_POSSIVEL -> SugestaoCondutaEnum.ALOCACAO_ALTERNATIVA;
+            case BAIXA_PROBABILIDADE_DE_COMPARECIMENTO ->
+                    SugestaoCondutaEnum.REAGENDAMENTO_PREVENTIVO;
+            case PROVAVEL_NAO_COMPARECIMENTO, CRITICO, REALOCACAO_POSSIVEL ->
+                    SugestaoCondutaEnum.ALOCACAO_ALTERNATIVA;
             case REALOCACAO_IMEDIATA -> SugestaoCondutaEnum.REALOCACAO_IMEDIATA;
         };
     }
-
 
     private String justificativaConduta(PacienteDomain paciente) {
 
@@ -108,53 +130,62 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
         int faltas = paciente.getTotalFaltas();
         int icc = paciente.getIcc();
 
-        ClassificacaoPacienteEnum classificacao = ClassificacaoPacienteEnum.valueOf(paciente.getClassificacao());
+        ClassificacaoPacienteEnum classificacao =
+                ClassificacaoPacienteEnum.valueOf(paciente.getClassificacao());
+
         return switch (classificacao) {
             case MUITO_CONFIAVEL ->
-                    String.format("O histórico do paciente indica comparecimento consistente em %d de %d agendamentos, demonstrando alta previsibilidade para manter o horário.",
-                            comparecimentos, agendamentos);
-
+                    String.format(
+                            "Histórico consistente: %d comparecimentos em %d agendamentos.",
+                            comparecimentos, agendamentos
+                    );
             case CONFIAVEL ->
-                    String.format("Na maior parte dos agendamentos (%d de %d), o paciente conseguiu comparecer, indicando um padrão estável ao longo do tempo.",
-                            comparecimentos, agendamentos);
-
+                    String.format(
+                            "Bom padrão de comparecimento: %d de %d consultas.",
+                            comparecimentos, agendamentos
+                    );
             case COMPARECIMENTO_PROVAVEL ->
-                    String.format("O paciente costuma comparecer na maioria das vezes (%d presenças), sugerindo boa chance de comparecimento.",
-                            comparecimentos);
-
+                    String.format(
+                            "Boa chance de comparecimento com %d presenças anteriores.",
+                            comparecimentos
+                    );
             case COMPARECIMENTO_INCERTO ->
-                    String.format("O histórico mostra alternância entre presenças (%d) e ausências (%d), o que indica necessidade de atenção no momento do agendamento.",
-                            comparecimentos, faltas);
-
+                    String.format(
+                            "Histórico irregular: %d presenças e %d faltas.",
+                            comparecimentos, faltas
+                    );
             case BAIXA_PROBABILIDADE_DE_COMPARECIMENTO ->
-                    String.format("Em parte dos agendamentos anteriores, o paciente teve dificuldade para comparecer (%d ausências), indicando menor previsibilidade do horário.",
-                            faltas);
-
-            case PROVAVEL_NAO_COMPARECIMENTO -> "O histórico recente aponta dificuldade recorrente de comparecimento, o que pode impactar a ocupação do horário agendado.";
-
+                    String.format(
+                            "Ocorrência relevante de faltas (%d).",
+                            faltas
+                    );
+            case PROVAVEL_NAO_COMPARECIMENTO ->
+                    "Histórico recente indica dificuldade recorrente de comparecimento.";
             case CRITICO ->
-                    String.format("O histórico recente mostra dificuldade em manter regularidade de comparecimento. O ICC %d indica baixa previsibilidade, sugerindo acompanhamento e possíveis ajustes no agendamento.",
-                            icc);
-
+                    String.format(
+                            "ICC %d indica baixa previsibilidade de comparecimento.",
+                            icc
+                    );
             case REALOCACAO_POSSIVEL ->
-                    String.format("Com base no histórico recente e no ICC %d, pode ser avaliado um ajuste preventivo da agenda, buscando melhor adaptação do horário ao contexto do paciente.",
-                            icc);
-
+                    String.format(
+                            "ICC %d sugere possível ajuste preventivo de agenda.",
+                            icc
+                    );
             case REALOCACAO_IMEDIATA ->
-                    String.format("Considerando o histórico recente e o ICC %d, recomenda-se ajuste imediato da alocação do horário, visando reduzir impactos na agenda e apoiar o cuidado.",
-                            icc);
+                    String.format(
+                            "ICC %d indica necessidade de realocação imediata.",
+                            icc
+                    );
         };
     }
 
-
-    private HistoricoDomain buildHistorico(EventoAgendamentoMessageDomain eventoAgendamentoMessageDomain){
-        HistoricoDomain historicoDomain = new HistoricoDomain(
-                eventoAgendamentoMessageDomain.getCns(),
-                eventoAgendamentoMessageDomain.getIdAgendamento(),
-                eventoAgendamentoMessageDomain.getStatusConsulta().toString(),
-                eventoAgendamentoMessageDomain.getStatusNotificacao().toString(),
-                eventoAgendamentoMessageDomain.getDataEvento()
+    private HistoricoDomain buildHistorico(EventoAgendamentoMessageDomain evento) {
+        return new HistoricoDomain(
+                evento.getCns(),
+                evento.getIdAgendamento(),
+                evento.getStatusConsulta().name(),
+                evento.getStatusNotificacao().name(),
+                evento.getDataEvento()
         );
-        return historicoDomain;
     }
 }

@@ -42,7 +42,7 @@ public class PacienteGatewayImpl implements PacienteGateway {
 
     @Override
     public PacienteDomain consultaPacienteFilaViva() {
-        PacienteEntity entity = pacienteRepository.findTopByIccGreaterThanOrderByIccDesc(75);
+        PacienteEntity entity = pacienteRepository.findTopByIccGreaterThanOrderByIccDesc(70);
         return PacienteEntityMapper.INSTANCE.toPacienteDomain(entity);
     }
 

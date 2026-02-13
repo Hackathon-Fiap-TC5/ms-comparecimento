@@ -19,24 +19,38 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
     }
 
     @Override
-    public void calculaComparecimento(
-            PacienteDomain paciente,
-            EventoAgendamentoMessageDomain evento
-    ) {
-        AtualizacaoPaciente atualizacao = calcularAtualizacao(paciente, evento);
+    public void calculaComparecimento(PacienteDomain paciente, EventoAgendamentoMessageDomain evento) {
+
+        boolean primeiroAgendamento = paciente.getTotalAgendamentos() == 0;
+
+        AtualizacaoPaciente atualizacao = calcularAtualizacao(
+                paciente,
+                evento,
+                primeiroAgendamento
+        );
+
         aplicarAtualizacao(paciente, atualizacao);
         pacienteGateway.criaOuAtualizarInformacoesPaciente(paciente);
     }
 
     private AtualizacaoPaciente calcularAtualizacao(
             PacienteDomain paciente,
-            EventoAgendamentoMessageDomain evento
+            EventoAgendamentoMessageDomain evento,
+            boolean primeiroAgendamento
     ) {
 
         Contadores contadores = atualizarContadores(paciente, evento.getStatusConsulta());
 
-        int icc = calcularIcc(paciente, evento);
-        ClassificacaoPacienteEnum classificacao = classificarIcc(icc);
+        int icc;
+        ClassificacaoPacienteEnum classificacao;
+
+        if (primeiroAgendamento) {
+            icc = paciente.getIcc();
+            classificacao = ClassificacaoPacienteEnum.MUITO_CONFIAVEL;
+        } else {
+            icc = calcularIcc(paciente, evento);
+            classificacao = classificarIcc(icc);
+        }
 
         return new AtualizacaoPaciente(
                 icc,
@@ -46,10 +60,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         );
     }
 
-    private Contadores atualizarContadores(
-            PacienteDomain paciente,
-            StatusConsultaEnum status
-    ) {
+    private Contadores atualizarContadores(PacienteDomain paciente, StatusConsultaEnum status) {
 
         int agendamentos = paciente.getTotalAgendamentos();
         int comparecimentos = paciente.getTotalComparecimentos();
@@ -74,10 +85,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         );
     }
 
-    private void aplicarAtualizacao(
-            PacienteDomain paciente,
-            AtualizacaoPaciente atualizacao
-    ) {
+    private void aplicarAtualizacao(PacienteDomain paciente, AtualizacaoPaciente atualizacao) {
 
         paciente.setIcc(atualizacao.icc());
         paciente.setClassificacao(atualizacao.classificacao().name());
@@ -89,10 +97,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         paciente.setUltimaAtualizacao(atualizacao.atualizacao());
     }
 
-    private int calcularIcc(
-            PacienteDomain paciente,
-            EventoAgendamentoMessageDomain evento
-    ) {
+    private int calcularIcc(PacienteDomain paciente, EventoAgendamentoMessageDomain evento) {
 
         double totalAg = Math.max(1, paciente.getTotalAgendamentos());
         double totalComp = paciente.getTotalComparecimentos();
@@ -112,8 +117,9 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
         double maturidade = calcularMaturidade(totalAg);
         double scoreEvento = calcularScoreEvento(evento);
 
-        double iccBruto = (scoreHistorico * maturidade)
-                + (scoreEvento * pesoEvento(maturidade));
+        double iccBruto =
+                (scoreHistorico * maturidade) +
+                        (scoreEvento * pesoEvento(maturidade));
 
         return normalizarIcc(iccBruto);
     }
@@ -137,8 +143,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
     }
 
     private double calcularMaturidade(double totalAgendamentos) {
-        return Math.min(1.0,
-                Math.log(totalAgendamentos + 1) / Math.log(20));
+        return Math.min(1.0, Math.log(totalAgendamentos + 1) / Math.log(20));
     }
 
     private double pesoEvento(double maturidade) {
@@ -164,16 +169,13 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
     }
 
     private double calcularScoreEvento(EventoAgendamentoMessageDomain evento) {
-
         if (evento == null) return 0.0;
 
-        double scoreStatus = scorePorStatus(evento.getStatusConsulta());
-        double scoreNotificacao = scorePorNotificacao(
-                evento.getStatusConsulta(),
-                evento.getStatusNotificacao()
-        );
-
-        return scoreStatus + scoreNotificacao;
+        return scorePorStatus(evento.getStatusConsulta()) +
+                scorePorNotificacao(
+                        evento.getStatusConsulta(),
+                        evento.getStatusNotificacao()
+                );
     }
 
     private double scorePorStatus(StatusConsultaEnum status) {
@@ -189,6 +191,7 @@ public class CalculaComparecimentoUseCaseImpl implements CalculaComparecimentoUs
             StatusConsultaEnum status,
             StatusNotificacaoEnum notificacao
     ) {
+
         return switch (notificacao) {
             case ENVIADA ->
                     status == StatusConsultaEnum.AGENDADO ? 2.0 :

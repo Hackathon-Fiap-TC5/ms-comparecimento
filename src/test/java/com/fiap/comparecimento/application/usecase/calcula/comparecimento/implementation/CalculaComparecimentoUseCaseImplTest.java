@@ -230,7 +230,10 @@ class CalculaComparecimentoUseCaseImplTest {
     void deveCalcularIccComPacienteNovo() {
         PacienteDomain novoPaciente = new PacienteDomain();
         novoPaciente.setCns("555");
-        // Inicializar contadores base como 0
+
+        novoPaciente.setIcc(100);
+        novoPaciente.setClassificacao(ClassificacaoPacienteEnum.MUITO_CONFIAVEL.name());
+
         novoPaciente.setTotalAgendamentos(0);
         novoPaciente.setTotalComparecimentos(0);
         novoPaciente.setTotalFaltas(0);
@@ -238,16 +241,23 @@ class CalculaComparecimentoUseCaseImplTest {
         novoPaciente.setTotalCancelamentos(0);
 
         eventoDomain = new EventoAgendamentoMessageDomain(
-                1L, "555", StatusConsultaEnum.AGENDADO,
-                StatusNotificacaoEnum.ENVIADA, OffsetDateTime.now());
+                1L, "555",
+                StatusConsultaEnum.AGENDADO,
+                StatusNotificacaoEnum.ENVIADA,
+                OffsetDateTime.now()
+        );
 
         useCase.calculaComparecimento(novoPaciente, eventoDomain);
 
         ArgumentCaptor<PacienteDomain> captor = ArgumentCaptor.forClass(PacienteDomain.class);
         verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(captor.capture());
 
-        // Verifica se incrementou de 0 para 1
         assertEquals(1, captor.getValue().getTotalAgendamentos());
+        assertEquals(100, captor.getValue().getIcc()); // 🔒 continua máximo
+        assertEquals(
+                ClassificacaoPacienteEnum.MUITO_CONFIAVEL.name(),
+                captor.getValue().getClassificacao()
+        );
     }
 
     @Test
@@ -266,8 +276,11 @@ class CalculaComparecimentoUseCaseImplTest {
     @Test
     void deveCalcularIccComTodosOsValoresZerados() {
         PacienteDomain zerado = new PacienteDomain();
-        // Inicializar todos como 0 para evitar NullPointerException no cálculo
         zerado.setCns("123");
+
+        zerado.setIcc(100);
+        zerado.setClassificacao(ClassificacaoPacienteEnum.MUITO_CONFIAVEL.name());
+
         zerado.setTotalAgendamentos(0);
         zerado.setTotalComparecimentos(0);
         zerado.setTotalFaltas(0);
@@ -275,12 +288,16 @@ class CalculaComparecimentoUseCaseImplTest {
         zerado.setTotalCancelamentos(0);
 
         eventoDomain = new EventoAgendamentoMessageDomain(
-                1L, "123", StatusConsultaEnum.REALIZADO,
-                StatusNotificacaoEnum.CONFIRMOU_48H_ANTECEDENCIA, OffsetDateTime.now());
+                1L, "123",
+                StatusConsultaEnum.REALIZADO,
+                StatusNotificacaoEnum.CONFIRMOU_48H_ANTECEDENCIA,
+                OffsetDateTime.now()
+        );
 
         useCase.calculaComparecimento(zerado, eventoDomain);
 
-        verify(pacienteGateway).criaOuAtualizarInformacoesPaciente(any(PacienteDomain.class));
+        verify(pacienteGateway)
+                .criaOuAtualizarInformacoesPaciente(any(PacienteDomain.class));
     }
 
 }

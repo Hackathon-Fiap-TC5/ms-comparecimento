@@ -1,5 +1,17 @@
 package com.fiap.comparecimento.infrastructure.database.implementations;
 
+import com.fiap.comparecimento.domain.model.PacienteDomain;
+import com.fiap.comparecimento.domain.model.RelatorioAbsenteismoDomain;
+import com.fiap.comparecimento.infrastructure.database.entities.PacienteEntity;
+import com.fiap.comparecimento.infrastructure.database.projection.RelatorioAbsenteismoProjection;
+import com.fiap.comparecimento.infrastructure.database.repositories.PacienteRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -7,24 +19,10 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.fiap.comparecimento.domain.exception.PacienteNotFoundException;
-import com.fiap.comparecimento.domain.model.PacienteDomain;
-import com.fiap.comparecimento.domain.model.RelatorioAbsenteismoDomain;
-import com.fiap.comparecimento.infrastructure.database.entities.PacienteEntity;
-import com.fiap.comparecimento.infrastructure.database.projection.RelatorioAbsenteismoProjection;
-import com.fiap.comparecimento.infrastructure.database.repositories.PacienteRepository;
 
 @ExtendWith(MockitoExtension.class)
 class PacienteGatewayImplTest {
@@ -71,25 +69,14 @@ class PacienteGatewayImplTest {
         when(pacienteRepository.getByCns(cns)).thenReturn(Optional.of(pacienteEntity));
 
         // When
-        PacienteDomain result = gateway.consultar(cns);
+        Optional<PacienteDomain> result = gateway.consultar(cns);
 
         // Then
         assertNotNull(result);
-        assertEquals(cns, result.getCns());
-        assertEquals(85, result.getIcc());
-        assertEquals("CONFIAVEL", result.getClassificacao());
+        assertEquals(cns, result.get().getCns());
+        assertEquals(85, result.get().getIcc());
+        assertEquals("CONFIAVEL", result.get().getClassificacao());
         verify(pacienteRepository, times(1)).getByCns(cns);
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoPacienteNaoEncontrado() {
-        // Given
-        String cns = "999999999999999";
-        when(pacienteRepository.getByCns(cns)).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThrows(PacienteNotFoundException.class, () -> gateway.consultar(cns));
-        verify(pacienteRepository).getByCns(cns);
     }
 
     @Test

@@ -1,20 +1,22 @@
 package com.fiap.comparecimento.application.usecase.pacientes.implementation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.fiap.comparecimento.application.gateway.PacienteGateway;
+import com.fiap.comparecimento.domain.model.PacienteDomain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.fiap.comparecimento.application.gateway.PacienteGateway;
-import com.fiap.comparecimento.domain.model.PacienteDomain;
 
 @ExtendWith(MockitoExtension.class)
 class ConsultarIndiceComparecimentoPacienteUseCaseImplTest {
@@ -41,7 +43,7 @@ class ConsultarIndiceComparecimentoPacienteUseCaseImplTest {
     void deveConsultarPacientePorCns() {
         // Given
         String cns = "123456789012345";
-        when(pacienteGateway.consultar(cns)).thenReturn(pacienteDomain);
+        when(pacienteGateway.consultar(cns)).thenReturn(Optional.of(pacienteDomain));
 
         // When
         PacienteDomain result = useCase.consultar(cns);
@@ -63,7 +65,7 @@ class ConsultarIndiceComparecimentoPacienteUseCaseImplTest {
         pacienteDomain.setTotalCancelamentos(2);
         pacienteDomain.setTotalAgendamentos(20);
         
-        when(pacienteGateway.consultar(cns)).thenReturn(pacienteDomain);
+        when(pacienteGateway.consultar(cns)).thenReturn(Optional.of(pacienteDomain));
 
         // When
         PacienteDomain result = useCase.consultar(cns);
@@ -81,7 +83,7 @@ class ConsultarIndiceComparecimentoPacienteUseCaseImplTest {
     void deveChamarGatewayUmaVez() {
         // Given
         String cns = "123456789012345";
-        when(pacienteGateway.consultar(cns)).thenReturn(pacienteDomain);
+        when(pacienteGateway.consultar(cns)).thenReturn(Optional.of(pacienteDomain));
 
         // When
         useCase.consultar(cns);

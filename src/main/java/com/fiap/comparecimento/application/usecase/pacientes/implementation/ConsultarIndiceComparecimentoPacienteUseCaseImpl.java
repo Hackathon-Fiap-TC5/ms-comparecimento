@@ -2,6 +2,7 @@ package com.fiap.comparecimento.application.usecase.pacientes.implementation;
 
 import com.fiap.comparecimento.application.gateway.PacienteGateway;
 import com.fiap.comparecimento.application.usecase.pacientes.ConsultarIndiceComparecimentoPacienteUseCase;
+import com.fiap.comparecimento.domain.exception.PacienteNotFoundException;
 import com.fiap.comparecimento.domain.model.PacienteDomain;
 
 public class ConsultarIndiceComparecimentoPacienteUseCaseImpl implements ConsultarIndiceComparecimentoPacienteUseCase {
@@ -14,6 +15,7 @@ public class ConsultarIndiceComparecimentoPacienteUseCaseImpl implements Consult
 
     @Override
     public PacienteDomain consultar(String cns) {
-        return pacienteGateway.consultar(cns);
+        return pacienteGateway.consultar(cns)
+                .orElseThrow(PacienteNotFoundException::new);
     }
 }

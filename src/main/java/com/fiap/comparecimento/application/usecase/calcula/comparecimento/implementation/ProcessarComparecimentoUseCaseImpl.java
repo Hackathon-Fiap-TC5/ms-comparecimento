@@ -41,7 +41,6 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
 
     @Override
     public void processaComparecimento(EventoAgendamentoMessageDomain evento) {
-
         filaVivaAsyncDomainService.processarFilaViva(evento);
 
         PacienteDomain paciente = obterOuCriarPaciente(evento);
@@ -50,28 +49,20 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
     }
 
     private PacienteDomain obterOuCriarPaciente(EventoAgendamentoMessageDomain evento) {
-
-        PacienteDomain paciente = pacienteGateway.consultar(evento.getCns());
+        PacienteDomain paciente = pacienteGateway
+                .consultar(evento.getCns())
+                .orElse(null);
 
         if (paciente == null) {
             paciente = criarPacienteInicial(evento);
-            pacienteGateway.criaOuAtualizarInformacoesPaciente(paciente);
         }
 
         return paciente;
     }
 
-    private void processarComparecimentoPaciente(
-            PacienteDomain paciente,
-            EventoAgendamentoMessageDomain evento
-    ) {
-
+    private void processarComparecimentoPaciente(PacienteDomain paciente, EventoAgendamentoMessageDomain evento) {
         calculaComparecimentoUseCase.calculaComparecimento(paciente, evento);
-
-        adicionaItemHistoricoUseCase.adicionaItemHistorico(
-                buildHistorico(evento)
-        );
-
+        adicionaItemHistoricoUseCase.adicionaItemHistorico(buildHistorico(evento));
         comparecimentoProducer.sendSugestions(
                 buildComparecimentoPayload(evento.getIdAgendamento(), paciente)
         );
@@ -82,7 +73,11 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
                 evento.getCns(),
                 100,
                 ClassificacaoPacienteEnum.MUITO_CONFIAVEL.name(),
-                0, 0, 0, 0, 0,
+                0, // totalComparecimentos
+                0, // totalFaltas
+                0, // totalConfirmacoes
+                0, // totalCancelamentos
+                0, // totalAgendamentos
                 OffsetDateTime.now()
         );
     }
@@ -91,7 +86,6 @@ public class ProcessarComparecimentoUseCaseImpl implements ProcessarComparecimen
             Long idAgendamento,
             PacienteDomain paciente
     ) {
-
         ClassificacaoPacienteEnum classificacao =
                 ClassificacaoPacienteEnum.valueOf(paciente.getClassificacao());
 
